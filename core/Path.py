@@ -26,6 +26,8 @@ class Path:
     def getNodesWithServer(self):
         return self._nodes
         
+    def getFirstNode(self):
+        return self._nodes[0]
     
     def getNextNode(self, nodeId):
         # TODO use a dic to optimize it

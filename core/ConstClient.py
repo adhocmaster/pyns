@@ -6,8 +6,8 @@ import numpy as np
 
 class ConstClient(Client):
 
-    def __init__(self, id, deliveryRate, debug=True):
-        super().__init__(id, SenderType.Noob, deliveryRate=deliveryRate, debug=debug)
+    def __init__(self, id, deliveryRate, debug=True, resolution=1):
+        super().__init__(id, SenderType.Noob, deliveryRate=deliveryRate, debug=debug, resolution=resolution)
 
     def getNumberOfPacketsToCreateForTimeStep(self, timeStep):
         # num = math.floor(timeStep * self.deliveryRate)  - math.floor((self.lastTimeStep) * self.deliveryRate)
@@ -45,7 +45,14 @@ class ConstClient(Client):
         Args:
             timeStep ([type]): [description]
         """
-        logging.debug(f"{self.thread.getName()}: running at timeStep {timeStep}")
+        if self.debug:
+            logging.debug(f"{self.thread.getName()}: running at timeStep {timeStep}")
+
+        packets = self.createPacketsForTimeStep(timeStep)
+
+        # send the packets to next node
+        self.send(packets, timeStep)
+
         pass
 
 

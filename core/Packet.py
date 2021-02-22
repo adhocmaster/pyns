@@ -1,6 +1,6 @@
 class Packet:
 
-    def __init__(self, id, sender, size:int=20, sentAt=0):
+    def __init__(self, id, sender, path, size:int=20, sentAt=0):
         self.id = id
         self.sender = sender
         self.size = size # in bytes. do not change as data in flight is calculated in KB
@@ -15,7 +15,7 @@ class Packet:
         self.nodeLeaveAt = 0
         self.curNode = None
         self.nextNode = None
-        self.path = None
+        self.path = path
 
 
     def getPacketNumber(self):

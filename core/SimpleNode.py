@@ -33,7 +33,7 @@ class SimpleNode(Node):
     def onIncomingPacket(self, packet, timeStep):
         
         if self.debug:
-            logging.info(f"SimpleNode {self.id}: incoming packet from sender {packet[0].sender.id}")
+            logging.info(f"SimpleNode {self.id}: incoming packet from sender {packet.sender.id}")
 
         """
         1. when a packet arrives, it has a path object
@@ -79,9 +79,12 @@ class SimpleNode(Node):
     #     pass
     def onTimeStep(self, timeStep):
 
-        logging.debug(f"SimpleNode {self.id}: onTimeStep at {timeStep}")
         self.tryDeliveringFromQueue(timeStep, limit=self.maxDeliveryRate)
         flushedPackets = self.getPipePacketsByTimeStep(timeStep)
+
+        if self.debug:
+            logging.debug(f"SimpleNode {self.id}: flushing out {len(flushedPackets)} to next nodes")
+
 
         for packet in flushedPackets:
             packet.nextNode.onIncomingPacket(packet, timeStep)

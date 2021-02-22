@@ -53,5 +53,14 @@ class Network:
         newPathId = self.nextPathId
         self.paths[newPathId] = Path(newPathId, client=client, nodes=nodes, server=server)
         self.nextPathId += 1
-        return newPathId
+
+        path = self.paths[newPathId]
+        client.nextNode = nodes[0]
+        client.path = path
+
+        for node1 in nodes:
+            for node2 in nodes:
+                if node1.id != node2.id:
+                    self.createChannels(node1, node2)
+        return path
 

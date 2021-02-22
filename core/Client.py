@@ -26,6 +26,9 @@ class Client(ABC):
         self.resolution = resolution # miliseconds.
         self.forceStop = False
         self.lastTimeStep = None
+        self.nextNode = None
+        self.path = None
+
     
     def __str__(self):
 
@@ -77,7 +80,7 @@ class Client(ABC):
     def createPacket(self, size, sentAt):
         
         packetId = self.getNewPacketId()
-        return Packet(packetId, self, size=size, sentAt=sentAt)
+        return Packet(packetId, self,size=size, sentAt=sentAt)
     
     def createPackets(self, numberOfPackets, sentAt):
 
@@ -89,7 +92,7 @@ class Client(ABC):
         ids = self.getNewPacketIds(numberOfPackets)
         packets = []
         for id in ids:
-            packets.append(Packet(id, self, size=size, sentAt=sentAt))
+            packets.append(Packet(id, self, path=self.path, size=size, sentAt=sentAt))
         return packets
 
 
@@ -170,7 +173,14 @@ class Client(ABC):
         self.ackedPackets[packet.getPacketNumber()] = packet
         pass
 
+    
+    def send(self, packets, timeStep):
+        if self.debug:
+            logging.debug(f"Node {self.id}: sending {len(packets)} packets to Node {self.nextNode.id}.")
+        for packet in packets:
+            self.nextNode.onIncomingPacket(packet, timeStep)
 
+    # threading
 
     def lifeCycle(self):
         while self.forceStop is False:

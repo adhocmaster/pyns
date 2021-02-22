@@ -18,11 +18,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 network = Network.get()
 nodeManager = NodeManager()
-nodeManager.createSimpleNodes(n=10, resolution=10)
+nodeManager.createSimpleNodes(n=10, resolution=10, debug=False)
 
 randomNodes = nodeManager.getRandomNodes(5)
 
-client = ConstClient(1, deliveryRate=1, debug=True)
+client = ConstClient(1, deliveryRate=100, debug=True, resolution=10)
 server = Server(-1)
 
 path = network.createPath(client=client, nodes=randomNodes, server=server)
@@ -30,6 +30,6 @@ path = network.createPath(client=client, nodes=randomNodes, server=server)
 nodeManager.startNodes()
 client.start()
 
-time.sleep(1)
+time.sleep(.05)
 nodeManager.stopNodes()
 client.stop()
