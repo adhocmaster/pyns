@@ -1,17 +1,14 @@
 from abc import ABC, abstractmethod
-from core.NodeType import NodeType
+from model.PathType import PathType
 import logging
 import math
-import threading
-import time
 
-class Node(ABC):
+class Path(ABC):
 
-    def __init__(self, id, nodeType: NodeType=NodeType.SimpleQueue,
+    def __init__(self, pathType: PathType=PathType.SimpleQueue,
             maxDataInPipe=1000.0,
-            avgTTL=20, noiseMax=20, debug=True, resolution=1):
-        self.id = id
-        self.nodeType = nodeType
+            avgTTL=20, noiseMax=20, debug=True):
+        self.pathType = pathType
         self.maxDataInPipe = maxDataInPipe # in Kilo Bytes
         self.pipe = {} # holds received packets with ttl
         self.queue = None
@@ -20,9 +17,6 @@ class Node(ABC):
         self.debug = debug
 
         self.dataInPipe = 0
-        self.thread = None
-        self.resolution = resolution # miliseconds.
-        self.forceStop = False
     
     
     def isPipeFull(self):
@@ -126,22 +120,4 @@ class Node(ABC):
 
     @abstractmethod
     def isOverflowed(self):
-        pass
-
-    
-    def lifeCycle(self):
-        while self.forceStop is False:
-            time.sleep(self.resolution)
-            logging.debug(f"{self.thread.getName()}: running")
-        pass
-
-
-    def start(self):
-        self.forceStop = False
-        if self.thread is not None:
-            if self.thread.is_alive() is False:
-                self.thread.run()
-        
-        self.thread = threading.Thread(name="Client-"+str(self.id), target=self.lifeCycle, daemon=True)
-        self.thread.run()
         pass
