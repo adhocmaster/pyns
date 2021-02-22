@@ -22,7 +22,7 @@ nodeManager.createSimpleNodes(n=10, resolution=10, debug=False)
 
 randomNodes = nodeManager.getRandomNodes(5)
 
-client = ConstClient(1, deliveryRate=100, debug=True, resolution=10)
+client = ConstClient(1, deliveryRate=1000, debug=True, resolution=10)
 server = Server(-1)
 
 path = network.createPath(client=client, nodes=randomNodes, server=server)
@@ -30,6 +30,6 @@ path = network.createPath(client=client, nodes=randomNodes, server=server)
 nodeManager.startNodes()
 client.start()
 
-time.sleep(.05)
+time.sleep(.5)
 nodeManager.stopNodes()
 client.stop()

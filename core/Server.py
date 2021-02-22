@@ -23,6 +23,16 @@ class Server(Node):
         packet.ackAt = timeStep + self.ttlNoise
         packet.ttl = packet.ackAt - packet.sentAt
 
+        if self.debug:
+            if packet.curNode is None:
+                logging.info(f"Server {self.id}: incoming packet from sender {packet.sender.id}")
+            else:
+                logging.info(f"Server {self.id}: incoming packet from node {packet.curNode.id}")
+        
+        # TODO do a godly ack back to the sender.
+
+        packet.sender.onACK(packet)
+
         pass
 
     def onTimeStep(self, timeStep):

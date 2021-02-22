@@ -73,8 +73,8 @@ class Node(ABC):
             existingPackets += oldPackets
 
 
-        if self.debug and len(existingPackets) > 0:
-            logging.info(f"Node: flushing {len(existingPackets)} packets at {timeStep}")
+        # if self.debug and len(existingPackets) > 0:
+        #     logging.info(f"Node: flushing {len(existingPackets)} packets at {timeStep}")
         return existingPackets
 
     def getPipeStats(self):

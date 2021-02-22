@@ -62,6 +62,9 @@ class ConstClient(Client):
     def onACK(self, packet):
 
         super().onACK(packet)
+
+        if self.debug:
+            logging.debug(f"Client {self.id}: got ACK for packet no {packet.getPacketNumber()}")
         # packet loss conditions:
         # 1. ACK out of order.
         # 2. 
