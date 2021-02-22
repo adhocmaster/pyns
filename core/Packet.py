@@ -9,8 +9,13 @@ class Packet:
         self.sentAt = sentAt # in ms
         self.ackAt = 0 # in ms
         self.ttl = 0 # in ms
-        self.ttlNoise = 0 # in ms
         self.isDropped = False
+
+        self.nodeReceivedAt = 0
+        self.nodeLeaveAt = 0
+        self.curNode = None
+        self.nextNode = None
+        self.path = None
 
 
     def getPacketNumber(self):

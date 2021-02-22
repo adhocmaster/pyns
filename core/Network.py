@@ -3,12 +3,25 @@ from core.Node import Node
 from core.Client import Client
 from core.Path import Path
 
-class PathManager:
-    
+class Network:
+
+    this = None
+    @staticmethod
+    def get():
+        """Not thread safe. must be accessed by the application first
+
+        Returns:
+            [type]: [description]
+        """
+        if Network.this is None:
+            Network.this = Network()
+        return Network.this
+
     def __init__(self):
         self.channels = {} # keys are informat 'fromId-toId', values are float denoting transmission delay in ms. All the nodes that have point to point links must have an entry here. unidirectional only. For bidirectional, two entries needs to be created.
         self.nextPathId = 0
         self.paths = {}
+        Network.this = self
 
     # Channels
     def getChannelKey(self, fromNode, toNode):
@@ -29,6 +42,10 @@ class PathManager:
 
     def updateChannel(self, fromNode, toNode, delay=2):
         self.channels[self.getChannelKey(fromNode, toNode)] = delay
+
+    
+    def getDelay(self, fromNode, toNode):
+        return self.channels[self.getChannelKey(fromNode, toNode)]
 
     
     # Paths

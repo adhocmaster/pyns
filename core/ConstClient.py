@@ -10,7 +10,8 @@ class ConstClient(Client):
         super().__init__(id, SenderType.Noob, deliveryRate=deliveryRate, debug=debug)
 
     def getNumberOfPacketsToCreateForTimeStep(self, timeStep):
-        num = math.floor(timeStep * self.deliveryRate)  - math.floor((timeStep - 1) * self.deliveryRate)
+        # num = math.floor(timeStep * self.deliveryRate)  - math.floor((self.lastTimeStep) * self.deliveryRate)
+        num = ((timeStep - self.lastTimeStep) * self.deliveryRate) // 1000
         # print(num)
         # randomness
         # if self.debug:
@@ -35,6 +36,20 @@ class ConstClient(Client):
             timeStep ([type]): [description]
         """
         pass
+
+
+
+    def onTimeStep(self, timeStep):
+        """To be called at the end of a timeStep
+
+        Args:
+            timeStep ([type]): [description]
+        """
+        logging.debug(f"{self.thread.getName()}: running at timeStep {timeStep}")
+        pass
+
+
+
     
 
     def onACK(self, packet):

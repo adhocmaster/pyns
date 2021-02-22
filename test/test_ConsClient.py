@@ -13,7 +13,7 @@ class test_ConstClient(unittest.TestCase):
         client = ConstClient(1, deliveryRate=1, debug=True)
         client.start()
         logging.info(threading.current_thread().getName())
-        time.sleep(3)
+        time.sleep(0.1)
         client.stop()
         logging.info(threading.current_thread().getName())
         time.sleep(1)

@@ -4,6 +4,7 @@ import logging
 import math
 import threading
 import time
+from library.TimeUtils import TimeUtils
 
 class Node(ABC):
 
@@ -28,12 +29,12 @@ class Node(ABC):
     def isPipeFull(self):
         return self.dataInPipe >= self.maxDataInPipe
 
-    def addToPipe(self, packet):
+    def addToPipe(self, packet, leaveAt):
         if self.isPipeFull():
             return False
-        existingPackets = self.pipe.get(packet.ackAt, [])
+        existingPackets = self.pipe.get(leaveAt, [])
         existingPackets.append(packet)
-        self.pipe[packet.ackAt] = existingPackets
+        self.pipe[leaveAt] = existingPackets
 
         self.dataInPipe += packet.size / 1000
         return True
@@ -50,8 +51,8 @@ class Node(ABC):
         return round(self.dataInPipe, 2)
 
 
-    def getPacketsByTimeStep(self, timeStep):
-        """removes the packets
+    def getPipePacketsByTimeStep(self, timeStep):
+        """removes the packets in last 100 ms starting from timeStep
 
         Args:
             timeStep ([type]): [description]
@@ -59,16 +60,21 @@ class Node(ABC):
         Returns:
             [type]: [description]
         """
-        existingPackets = self.pipe.get(timeStep, [])
-        self.pipe[timeStep] = [] # removing the packets
+        existingPackets = []
+
+        for oldTimeStep in range(100):
+            oldPackets = self.pipe.get(timeStep - oldTimeStep, [])
+            self.pipe[timeStep - oldTimeStep] = [] # removing the packets
+
+            # reduce data in flight
+            for packet in oldPackets:
+                self.dataInPipe -= packet.size / 1000
+            
+            existingPackets += oldPackets
+
 
         if self.debug and len(existingPackets) > 0:
-            logging.info(f"SimpleQueuePath: receiving {len(existingPackets)} packets at {timeStep}")
-
-        # reduce data in flight
-        for packet in existingPackets:
-            self.dataInPipe -= packet.size / 1000
-
+            logging.info(f"Node: flushing {len(existingPackets)} packets at {timeStep}")
         return existingPackets
 
     def getPipeStats(self):
@@ -88,16 +94,20 @@ class Node(ABC):
     def getDataInQueueInKB(self):
         raise NotImplementedError()
 
-    @abstractmethod
-    def onIncomingPackets(self, packets):
-        pass
+    # @abstractmethod
+    # def onIncomingPackets(self, packets):
+    #     pass
 
     @abstractmethod
-    def getACKs(self):
+    def onIncomingPacket(self, packet, timeStep):
         pass
+
+    # @abstractmethod
+    # def getACKs(self):
+    #     pass
     
     @abstractmethod
-    def onTimeStepEnd(self, timeStep):
+    def onTimeStep(self, timeStep):
         """To be called at the end of a timeStep
 
         Args:
@@ -105,15 +115,25 @@ class Node(ABC):
         """
         pass
 
+    
+    # @abstractmethod
+    # def onTimeStepEnd(self, timeStep):
+    #     """To be called at the end of a timeStep
 
-    @abstractmethod
-    def onTimeStepStart(self, timeStep):
-        """Must be called at the beginning of a timeStep
+    #     Args:
+    #         timeStep ([type]): [description]
+    #     """
+    #     pass
 
-        Args:
-            timeStep ([type]): [description]
-        """
-        pass
+
+    # @abstractmethod
+    # def onTimeStepStart(self, timeStep):
+    #     """Must be called at the beginning of a timeStep
+
+    #     Args:
+    #         timeStep ([type]): [description]
+    #     """
+    #     pass
 
 
     @abstractmethod
@@ -128,20 +148,41 @@ class Node(ABC):
     def isOverflowed(self):
         pass
 
-    
+    # thread
     def lifeCycle(self):
         while self.forceStop is False:
-            time.sleep(self.resolution)
-            logging.debug(f"{self.thread.getName()}: running")
+            time.sleep(self.resolution / 1000)
+            timeStep = TimeUtils.getMS()
+            self.onTimeStep(timeStep)
+            self.lastTimeStep = timeStep
+        
+        if self.debug:
+            logging.debug(f"{self.thread.getName()}: stopped")
         pass
 
 
     def start(self):
         self.forceStop = False
+
         if self.thread is not None:
             if self.thread.is_alive() is False:
                 self.thread.run()
+                
+        name = "ThNode-"+str(self.id)
+        if self.nodeType == NodeType.Server:
+            name = "ThServer-"+str(self.id)
+
+        self.thread = threading.Thread(name=name, target=self.lifeCycle, daemon=True)
+        if self.debug:
+            logging.debug(f"{self.thread.getName()}: starting")
         
-        self.thread = threading.Thread(name="Client-"+str(self.id), target=self.lifeCycle, daemon=True)
-        self.thread.run()
+        self.lastTimeStep = TimeUtils.getMS()
+        self.thread.start()
+        return self.thread
+    
+
+    def stop(self):
+        if self.debug:
+            logging.debug(f"{self.thread.getName()}: stop requested")
+        self.forceStop = True
         pass

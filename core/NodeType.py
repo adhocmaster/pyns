@@ -1,5 +1,6 @@
 from enum import Enum
 
-class PathType(Enum):
+class NodeType(Enum):
+    Server = 0
     SimpleQueue = 1
     

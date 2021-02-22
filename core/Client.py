@@ -8,9 +8,11 @@ import numpy as np
 import logging
 import pandas as pd
 
+from library.TimeUtils import TimeUtils
+
 class Client(ABC):
 
-    def __init__(self, id, senderType: SenderType, deliveryRate = 0.1, debug=True, resolution=10):
+    def __init__(self, id, senderType: SenderType, deliveryRate = 0.1, debug=True, resolution=1):
         self.lock = threading.RLock()
         self.id = id
         self.nextPacketNumber = 1
@@ -23,6 +25,7 @@ class Client(ABC):
         self.thread = None
         self.resolution = resolution # miliseconds.
         self.forceStop = False
+        self.lastTimeStep = None
     
     def __str__(self):
 
@@ -71,12 +74,12 @@ class Client(ABC):
     
     
     
-    def createPacket(self, size, sentAt=0):
+    def createPacket(self, size, sentAt):
         
         packetId = self.getNewPacketId()
-        return Packet(packetId, self, size=size, sentAt=0)
+        return Packet(packetId, self, size=size, sentAt=sentAt)
     
-    def createPackets(self, numberOfPackets, sentAt=0):
+    def createPackets(self, numberOfPackets, sentAt):
 
 
         size = self.minPacketSize
@@ -90,12 +93,12 @@ class Client(ABC):
         return packets
 
 
-    # def createPacketsForTimeStep(self, timeStep):
+    def createPacketsForTimeStep(self, timeStep):
         
-    #     numberOfPackets = self.getNumberOfPacketsToCreateForTimeStep(timeStep)
-    #     # if self.debug:
-    #     #     logging.info(f"Sender #{self.id} creating {numberOfPackets} packets at {timeStep}")
-    #     return self.createPackets(numberOfPackets, sentAt=timeStep)
+        numberOfPackets = self.getNumberOfPacketsToCreateForTimeStep(timeStep)
+        # if self.debug:
+        #     logging.info(f"Sender #{self.id} creating {numberOfPackets} packets at {timeStep}")
+        return self.createPackets(numberOfPackets, sentAt=timeStep)
 
 
     # def createAndSendPacketsForTimeStep(self, timeStep, path: Path):
@@ -124,6 +127,15 @@ class Client(ABC):
         self.ackedPackets = collections.OrderedDict(sorted(self.ackedPackets.items()))
 
     
+    @abstractmethod
+    def onTimeStep(self, timeStep):
+        """To be called at the beginning of a timeStep
+
+        Args:
+            timeStep ([type]): [description]
+        """
+        pass
+
     @abstractmethod
     def onTimeStepStart(self, timeStep):
         """To be called at the beginning of a timeStep
@@ -163,7 +175,9 @@ class Client(ABC):
     def lifeCycle(self):
         while self.forceStop is False:
             time.sleep(self.resolution / 1000)
-            logging.debug(f"{self.thread.getName()}: running")
+            timeStep = TimeUtils.getMS()
+            self.onTimeStep(timeStep)
+            self.lastTimeStep = timeStep
         
         if self.debug:
             logging.debug(f"{self.thread.getName()}: stopped")
@@ -172,6 +186,7 @@ class Client(ABC):
 
     def start(self):
         self.forceStop = False
+
         if self.thread is not None:
             if self.thread.is_alive() is False:
                 self.thread.run()
@@ -179,6 +194,8 @@ class Client(ABC):
         self.thread = threading.Thread(name="ThClient-"+str(self.id), target=self.lifeCycle, daemon=True)
         if self.debug:
             logging.debug(f"{self.thread.getName()}: starting")
+        
+        self.lastTimeStep = TimeUtils.getMS()
         self.thread.start()
         return self.thread
     
