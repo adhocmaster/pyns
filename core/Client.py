@@ -176,7 +176,7 @@ class Client(ABC):
     
     def send(self, packets, timeStep):
         if self.debug:
-            logging.debug(f"Node {self.id}: sending {len(packets)} packets to Node {self.nextNode.id}.")
+            logging.debug(f"Client {self.id}: sending {len(packets)} packets to Node {self.nextNode.id}.")
         for packet in packets:
             self.nextNode.onIncomingPacket(packet, timeStep)
 

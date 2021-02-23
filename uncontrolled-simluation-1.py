@@ -21,15 +21,26 @@ nodeManager = NodeManager()
 nodeManager.createSimpleNodes(n=10, resolution=10, debug=False)
 
 randomNodes = nodeManager.getRandomNodes(5)
+randomNodes2 = nodeManager.getRandomNodes(2)
 
 client = ConstClient(1, deliveryRate=1000, debug=True, resolution=10)
+client2 = ConstClient(2, deliveryRate=2000, debug=True, resolution=10)
 server = Server(-1)
 
 path = network.createPath(client=client, nodes=randomNodes, server=server)
+path2 = network.createPath(client=client2, nodes=randomNodes2, server=server)
+
+print("path for client1:")
+print([node.id for node in path.getNodesWithServer()])
+print("path for client2:")
+print([node.id for node in path2.getNodesWithServer()])
+# print(path2.getNodesWithServer())
 
 nodeManager.startNodes()
 client.start()
+client2.start()
 
-time.sleep(.5)
+time.sleep(.05)
 nodeManager.stopNodes()
 client.stop()
+client2.stop()

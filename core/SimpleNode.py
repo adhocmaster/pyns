@@ -16,14 +16,23 @@ class SimpleNode(Node):
                     debug=True, 
                     resolution=1
                 ):
+
+        """[summary]
+    
+        Raises:
+            Exception: [description]
+        """
         super().__init__(id, NodeType.SimpleQueue, maxDataInPipe=maxDataInPipe, avgTTL=avgTTL, noiseMax=noiseMax, debug=debug, resolution=1)
+
+
         if maxDeliveryRate < 1:
             raise Exception("SimpleNode {self.id}: maxDeliveryRate less than 1 is not supported")
-        self.maxDeliveryRate = math.floor(maxDeliveryRate) # in packets for simplification. None if no restriction
+        self.maxDeliveryRate = math.floor(maxDeliveryRate) # in packets for simplification. None if no restriction. In seconds
 
         self.maxQsize = maxQsize
         self.queue = queue.Queue(maxsize=maxQsize)
         self.timeStep = 0
+        self.lastTimeStep = None
 
         logging.info(f"SimpleNode {self.id}: Maximum data in pipe is around (maxDeliveryRate * avgPacketSize * avgTTL) = {(self.maxDeliveryRate * 30 * self.avgTTL) / 1000} KB" )
         logging.info(f"SimpleNode {self.id}: Maximum data in flight can be around (pipe-data + queue-data) = {(self.maxDeliveryRate * 30 * self.avgTTL + self.maxQsize * 30) / 1000} KB" )
@@ -31,6 +40,7 @@ class SimpleNode(Node):
         
     
     def onIncomingPacket(self, packet, timeStep):
+        
         
         if self.debug:
             if packet.curNode is None:
@@ -80,9 +90,14 @@ class SimpleNode(Node):
     #         timeStep ([type]): [description]
     #     """
     #     pass
+    
+    def getNumberOfPacketsToDeliver(self, timeStep):
+        num = ((timeStep - self.lastTimeStep) * self.maxDeliveryRate) // 1000
+        return num
+
     def onTimeStep(self, timeStep):
 
-        self.tryDeliveringFromQueue(timeStep, limit=self.maxDeliveryRate)
+        self.tryDeliveringFromQueue(timeStep, limit=self.getNumberOfPacketsToDeliver(timeStep))
         flushedPackets = self.getPipePacketsByTimeStep(timeStep)
 
         if self.debug and len(flushedPackets) > 0:
@@ -91,6 +106,7 @@ class SimpleNode(Node):
 
         for packet in flushedPackets:
             packet.nextNode.onIncomingPacket(packet, timeStep)
+        
 
 
     def tryDeliveringFromQueue(self, timeStep, limit=None):
