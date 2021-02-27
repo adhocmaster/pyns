@@ -15,6 +15,7 @@ class Packet:
         self.nodeLeaveAt = 0
         self.curNode = None
         self.nextNode = None
+        self.curNodeIndex = -1
         self.path = path
 
 

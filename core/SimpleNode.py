@@ -10,6 +10,7 @@ class SimpleNode(Node):
                     self, 
                     id,
                     maxDeliveryRate,
+                    transmissionDelayPerByte = 0.001,
                     maxDataInPipe=100000,
                     maxQsize = 10000, 
                     avgTTL=20, noiseMax=20,
@@ -22,12 +23,14 @@ class SimpleNode(Node):
         Raises:
             Exception: [description]
         """
-        super().__init__(id, NodeType.SimpleQueue, maxDataInPipe=maxDataInPipe, avgTTL=avgTTL, noiseMax=noiseMax, debug=debug, resolution=1)
+        super().__init__(id, NodeType.SimpleQueue,
+                        transmissionDelayPerByte=transmissionDelayPerByte,
+                        maxDataInPipe=maxDataInPipe, avgTTL=avgTTL, noiseMax=noiseMax, debug=debug, resolution=1)
 
 
         if maxDeliveryRate < 1:
             raise Exception("SimpleNode {self.id}: maxDeliveryRate less than 1 is not supported")
-        self.maxDeliveryRate = math.floor(maxDeliveryRate) # in packets for simplification. None if no restriction. In seconds
+        self.maxDeliveryRate = math.ceil(maxDeliveryRate) # in packets for simplification. None if no restriction. In seconds
 
         self.maxQsize = maxQsize
         self.queue = queue.Queue(maxsize=maxQsize)
@@ -92,6 +95,7 @@ class SimpleNode(Node):
     #     pass
     
     def getNumberOfPacketsToDeliver(self, timeStep):
+        # delivery rate is in seconds, timeStep in ms
         num = ((timeStep - self.lastTimeStep) * self.maxDeliveryRate) // 1000
         return num
 
@@ -156,11 +160,15 @@ class SimpleNode(Node):
         return self.getDataInPipeInKB() + self.getDataInQueueInKB()
     
     
-    def getDataInQueueInKB(self):
+    def getDataInQueueInBytes(self):
         s = 0
         for packet in self.queue.queue: # accessing underlying deque, so, items are not consumed
-            s += packet.size / 1000
-        return round(s, 2)
+            s += packet.size
+        return s
+
+    
+    def getDataInQueueInKB(self):
+        return round(self.getDataInQueueInBytes(), 2)
 
 
     

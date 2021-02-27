@@ -47,6 +47,8 @@ class Server(Node):
     def getDataInFlightInKB(self):
         raise NotImplementedError()
 
+    def getDataInQueueInBytes(self):
+        raise NotImplementedError()
 
     def getDataInQueueInKB(self):
         raise NotImplementedError()

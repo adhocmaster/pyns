@@ -9,10 +9,12 @@ from library.TimeUtils import TimeUtils
 class Node(ABC):
 
     def __init__(self, id, nodeType: NodeType=NodeType.SimpleQueue,
+            transmissionDelayPerByte = 0.001,
             maxDataInPipe=1000.0,
             avgTTL=20, noiseMax=20, debug=True, resolution=1):
         self.id = id
         self.nodeType = nodeType
+        self.transmissionDelayPerByte = transmissionDelayPerByte # in mili, fraction allowed. For 1 micro, set it to 0.001
         self.maxDataInPipe = maxDataInPipe # in Kilo Bytes
         self.pipe = {} # holds received packets with ttl
         self.queue = None
@@ -89,6 +91,10 @@ class Node(ABC):
     def getDataInFlightInKB(self):
         raise NotImplementedError()
 
+
+    @abstractmethod
+    def getDataInQueueInBytes(self):
+        raise NotImplementedError()
 
     @abstractmethod
     def getDataInQueueInKB(self):
