@@ -3,10 +3,10 @@ import time
 from library.TimeUtils import TimeUtils
 import logging
 from event.PacketEventManager import PacketEventManager
-
+import pprint
 class EventSimulator(object):
 
-    def __init__(self, timeResolutionUnit, future_events=None, debug=False):
+    def __init__(self, timeResolutionUnit, startTimeStep=0, future_events=None, debug=False):
         
         self.future_events = future_events or []
         self.timeResolutionUnit = timeResolutionUnit
@@ -14,10 +14,12 @@ class EventSimulator(object):
         self.debug = debug
         self.eventManager = PacketEventManager(timeResolutionUnit, debug=debug)
         self.clients = []
+        self.pp = pprint.PrettyPrinter(indent=4)
+        self.timeStep = startTimeStep
 
     
     def addClient(self, client):
-        client.lastTimeStep = TimeUtils.getMS()
+        client.lastTimeStep = self.timeStep
         self.clients.append(client)
         
 
@@ -26,19 +28,56 @@ class EventSimulator(object):
         heapq.heappush(self.future_events, e)
 
     
-    def getTimeStep(self):
+    def getCurrentTime(self):
         if self.timeResolutionUnit == 'ms':
             return TimeUtils.getMS()
+        if self.timeResolutionUnit == 'mcs':
+            return TimeUtils.getMicroS()
+        if self.timeResolutionUnit == 'ns':
+            return time.time_ns()
         raise NotImplementedError()
-        
+
+    def convertTimeToSimulatorUnit(self, amount, originalUnit):
+        if originalUnit == 's':
+            if self.timeResolutionUnit == 'ms':
+                return amount * 1000
+            
+            if self.timeResolutionUnit == 'mcs':
+                return amount * 1000_000
+            
+            if self.timeResolutionUnit == 'ns':
+                return amount * 1000_000_000
+
+        if originalUnit == 'ms':
+            if self.timeResolutionUnit == 'ms':
+                return amount
+            
+            if self.timeResolutionUnit == 'mcs':
+                return amount * 1000
+            
+            if self.timeResolutionUnit == 'ns':
+                return amount * 1000_000
+            
+        raise NotImplementedError()
+
+    def printEvents(self):
+        if len(self.future_events) == 0:
+            return
+        eStr = []
+        for e in self.future_events:
+            eStr.append( f"{e.time}: {e.name.name} p#{e.packet.id}")
+        logging.debug(f"{self.name}: {self.timeStep}: " + self.pp.pformat(eStr))
 
     def step(self):
         """Performs one step of the event simulator."""
         # Gets the first event.
         # check the timing for the first event, if it's due, pop it
         # how about multiple?
+        if self.debug:
+            self.printEvents()
 
-        timeStep = self.getTimeStep()
+        # timeStep = self.getCurrentTime()
+        timeStep = self.timeStep
 
         # # 1. let clients create events first
         # self.createClientEvents(timeStep)
@@ -48,14 +87,17 @@ class EventSimulator(object):
         #     return
 
 
-        if len(self.future_events) > 0 and self.future_events[0].time <= timeStep:
+        while len(self.future_events) > 0 and self.future_events[0].time <= timeStep:
             e = heapq.heappop(self.future_events)
+
+            if self.debug:
+                logging.debug(f"{self.name}: {timeStep}: raised event ({e.name}, {e.time})")
             # Causes e to happen.
             # generated_events = e.do()
             generated_events = self.eventManager.processEvent(self, e.name, e.packet)
 
             if self.debug:
-                logging.debug(f"{self.name}: {timeStep}: processed event ({e.name}, {e.time}), which generated {len(generated_events)} new events")
+                logging.debug(f"{self.name}: {timeStep}: done event ({e.name}, {e.time}), which generated {len(generated_events)} new events")
 
             # And inserts the resulting events into the heap of future events.
             for ge in generated_events:
@@ -64,13 +106,15 @@ class EventSimulator(object):
         # 1. let clients create events first
         self.createClientEvents(timeStep)
 
+        self.timeStep += 1
+
 
 
     def createClientEvents(self, timeStep):
         for client in self.clients:
             packets = client.createPacketsForTimeStep(timeStep)
             self.eventManager.initiatePacketEvents(self, timeStep, packets)
-            client.lastTimeStep = timeStep
+            # client.lastTimeStep = timeStep # client should update it whenever it has created some packets
 
             if self.debug and len(packets) > 0:
                 logging.debug(f"{self.name}: {timeStep}: initiated {len(packets)} packets from client {client.id}")

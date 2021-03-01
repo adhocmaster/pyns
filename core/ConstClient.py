@@ -6,18 +6,24 @@ import numpy as np
 
 class ConstClient(Client):
 
-    def __init__(self, id, deliveryRate, debug=True, resolution=1):
-        super().__init__(id, SenderType.Noob, deliveryRate=deliveryRate, debug=debug, resolution=resolution)
+    def __init__(self, id, deliveryRate, debug=True,
+    
+            timeResolutionUnit='ms', 
+            resolution=1):
+        super().__init__(id, SenderType.Noob, deliveryRate=deliveryRate, debug=debug, resolution=resolution, timeResolutionUnit=timeResolutionUnit)
 
     def getNumberOfPacketsToCreateForTimeStep(self, timeStep):
-        # num = math.floor(timeStep * self.deliveryRate)  - math.floor((self.lastTimeStep) * self.deliveryRate)
-        num = ((timeStep - self.lastTimeStep) * self.deliveryRate) // 1000
-        # print(num)
-        # randomness
-        # if self.debug:
-        #     logging.info(f"Sender #{self.id} creating {numberOfPackets} packets at {timeStep}")
-        # return math.floor( num * np.random.uniform(0.5, 1.1))
-        return num
+
+        # deliveryRate is per second
+        
+        if self.timeResolutionUnit == 'ms':
+            return ((timeStep - self.lastTimeStep) * self.deliveryRate) // 1000
+        if self.timeResolutionUnit == 'mcs':
+            # if timeStep >= 1000:
+            #     print('h')
+            return ((timeStep - self.lastTimeStep) * self.deliveryRate) // 1000_000
+        if self.timeResolutionUnit == 'ns':
+            return ((timeStep - self.lastTimeStep) * self.deliveryRate) // 1000_000_000
         
 
     def onTimeStepStart(self, timeStep):

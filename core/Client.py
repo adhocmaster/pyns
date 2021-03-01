@@ -12,7 +12,10 @@ from library.TimeUtils import TimeUtils
 
 class Client(ABC):
 
-    def __init__(self, id, senderType: SenderType, deliveryRate = 0.1, debug=True, resolution=1):
+    def __init__(self, id, senderType: SenderType, deliveryRate = 0.1, debug=True,
+    
+            timeResolutionUnit='ms', 
+            resolution=1):
         self.lock = threading.RLock()
         self.id = id
         self.nextPacketNumber = 1
@@ -25,9 +28,10 @@ class Client(ABC):
         self.thread = None
         self.resolution = resolution # miliseconds.
         self.forceStop = False
-        self.lastTimeStep = None
+        self.lastTimeStep = None # last timeStep when some packets were created
         self.nextNode = None
         self.path = None
+        self.timeResolutionUnit = timeResolutionUnit
 
     
     def __str__(self):
@@ -101,7 +105,10 @@ class Client(ABC):
         numberOfPackets = self.getNumberOfPacketsToCreateForTimeStep(timeStep)
         # if self.debug:
         #     logging.info(f"Sender #{self.id} creating {numberOfPackets} packets at {timeStep}")
-        return self.createPackets(numberOfPackets, sentAt=timeStep)
+        packets = self.createPackets(numberOfPackets, sentAt=timeStep)
+        if len(packets) > 0:
+            self.lastTimeStep = timeStep
+        return packets
 
 
     # def createAndSendPacketsForTimeStep(self, timeStep, path: Path):

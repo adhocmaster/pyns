@@ -11,8 +11,8 @@ class Packet:
         self.ttl = 0 # in ms
         self.isDropped = False
 
-        self.nodeReceivedAt = 0
-        self.nodeLeaveAt = 0
+        self.nodeReceivedAt = 0 # arrival time at a queue.
+        self.nodeLeaveAt = 0 # departure time from the queue or channel?
         self.curNode = None
         self.nextNode = None
         self.curNodeIndex = -1
@@ -25,6 +25,9 @@ class Packet:
         return idArr[1]
         
     
+    def __lt__(self, other):
+        return self.nodeReceivedAt < other.nodeReceivedAt
+
     def __str__(self):
 
         return (

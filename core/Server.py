@@ -25,9 +25,9 @@ class Server(Node):
 
         if self.debug:
             if packet.curNode is None:
-                logging.info(f"Server {self.id}: incoming packet from sender {packet.sender.id}")
+                logging.debug(f"Server {self.id}: incoming packet from sender {packet.sender.id}")
             else:
-                logging.info(f"Server {self.id}: incoming packet from node {packet.curNode.id}")
+                logging.debug(f"Server {self.id}: incoming packet from node {packet.curNode.id}")
         
         # TODO do a godly ack back to the sender.
 

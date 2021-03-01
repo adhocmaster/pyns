@@ -10,11 +10,12 @@ class SimpleNode(Node):
                     self, 
                     id,
                     maxDeliveryRate,
-                    transmissionDelayPerByte = 0.001,
+                    transmissionDelayPerByte = 0.0001,
                     maxDataInPipe=100000,
                     maxQsize = 10000, 
                     avgTTL=20, noiseMax=20,
                     debug=True, 
+                    timeResolutionUnit='ms', 
                     resolution=1
                 ):
 
@@ -23,14 +24,17 @@ class SimpleNode(Node):
         Raises:
             Exception: [description]
         """
-        super().__init__(id, NodeType.SimpleQueue,
-                        transmissionDelayPerByte=transmissionDelayPerByte,
-                        maxDataInPipe=maxDataInPipe, avgTTL=avgTTL, noiseMax=noiseMax, debug=debug, resolution=1)
-
-
         if maxDeliveryRate < 1:
             raise Exception("SimpleNode {self.id}: maxDeliveryRate less than 1 is not supported")
         self.maxDeliveryRate = math.ceil(maxDeliveryRate) # in packets for simplification. None if no restriction. In seconds
+
+        super().__init__(id, NodeType.SimpleQueue,
+                        transmissionDelayPerByte=transmissionDelayPerByte,
+                        maxDataInPipe=maxDataInPipe, avgTTL=avgTTL, noiseMax=noiseMax, debug=debug, resolution=1,
+                        timeResolutionUnit=timeResolutionUnit)
+
+
+
 
         self.maxQsize = maxQsize
         self.queue = queue.Queue(maxsize=maxQsize)
@@ -159,7 +163,7 @@ class SimpleNode(Node):
     def getDataInFlightInKB(self):
         return self.getDataInPipeInKB() + self.getDataInQueueInKB()
     
-    
+    # Queue methods start
     def getDataInQueueInBytes(self):
         s = 0
         for packet in self.queue.queue: # accessing underlying deque, so, items are not consumed
@@ -199,3 +203,5 @@ class SimpleNode(Node):
     
     def isOverflowed(self):
         return self.getQueueSize() >= self.maxQsize
+
+    # Queue methods end

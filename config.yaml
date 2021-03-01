@@ -1,0 +1,4 @@
+
+timeResolutionUnit: "mcs"
+minPacketSize: 20
+maxPacketSize: 40

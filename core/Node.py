@@ -8,10 +8,13 @@ from library.TimeUtils import TimeUtils
 
 class Node(ABC):
 
-    def __init__(self, id, nodeType: NodeType=NodeType.SimpleQueue,
-            transmissionDelayPerByte = 0.001,
+    def __init__(self, id, 
+            nodeType: NodeType=NodeType.SimpleQueue,
+            transmissionDelayPerByte = 0.0001,
             maxDataInPipe=1000.0,
-            avgTTL=20, noiseMax=20, debug=True, resolution=1):
+            avgTTL=20, noiseMax=20, debug=True,
+            timeResolutionUnit='ms', 
+            resolution=1):
         self.id = id
         self.nodeType = nodeType
         self.transmissionDelayPerByte = transmissionDelayPerByte # in mili, fraction allowed. For 1 micro, set it to 0.001
@@ -26,6 +29,8 @@ class Node(ABC):
         self.thread = None
         self.resolution = resolution # miliseconds.
         self.forceStop = False
+        self.timeResolutionUnit = timeResolutionUnit
+        self.channelBusyUntil = 0 
     
     
     def isPipeFull(self):

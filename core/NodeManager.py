@@ -1,27 +1,103 @@
 from core.SimpleNode import SimpleNode
+from core.HeapNode import HeapNode
 from core.NodeType import NodeType
 import numpy as np
+from library.Configuration import Configuration
 
 class NodeManager:
 
     def __init__(self):
         self.nodes = {}
         self.nextNodeId = 0
+        self.config = Configuration()
 
-    def createNode(self, nodeType, maxDeliveryRate,
-            maxDataInPipe=1000.0, debug=True, resolution=1):
+
+    def getTransmissionDelayFromDeliverRate(self, deliveryRateInS):
+
+        avgPacketSize = (self.config.get('minPacketSize') + self.config.get('maxPacketSize')) / 2
+        return 1000 / (deliveryRateInS * avgPacketSize) 
+
+
+    def createSimpleNode(self, 
+            maxDeliveryRate=50,
+            maxDataInPipe=100000,
+            maxQsize = 10000, 
+            debug=True, 
+            resolution=1):
+
         
-        newNode = SimpleNode(self.nextNodeId, maxDeliveryRate=maxDeliveryRate, maxDataInPipe=maxDataInPipe, resolution=resolution)
+        transmissionDelayPerByte = self.getTransmissionDelayFromDeliverRate(maxDeliveryRate)
+
+        print(transmissionDelayPerByte)
+        
+        newNode = SimpleNode(self.nextNodeId, 
+                            maxDeliveryRate=maxDeliveryRate, 
+                            transmissionDelayPerByte = transmissionDelayPerByte,
+                            maxDataInPipe=maxDataInPipe, 
+                            maxQsize = maxQsize, 
+                            debug=debug, 
+                            resolution=resolution)
         self.nodes[newNode.id] = newNode
         self.nextNodeId += 1
         return newNode
         
     
-    def createSimpleNodes(self, n, maxDeliveryRate=50,
-            maxDataInPipe=1000.0, debug=True, resolution=1):
+    def createSimpleNodes(self, n, 
+            maxDeliveryRate=50,
+            transmissionDelayPerByte = 0.0001,
+            maxDataInPipe=100000,
+            maxQsize = 10000, 
+            debug=True, 
+            resolution=1):
+
+        
         
         for _ in range(n):
-            self.createNode(nodeType=NodeType.SimpleQueue, maxDeliveryRate=maxDeliveryRate, maxDataInPipe=maxDataInPipe, debug=debug, resolution=resolution)
+            self.createSimpleNode(
+                            maxDeliveryRate=maxDeliveryRate, 
+                            maxDataInPipe=maxDataInPipe, 
+                            maxQsize = maxQsize, 
+                            debug=debug, 
+                            resolution=resolution
+                            )
+        
+        return self.nodes.values()
+
+    def createHeapNode(self,
+            maxDeliveryRate=50,
+            maxDataInPipe=100000,
+            maxQsize = 10000, 
+            debug=True, 
+            resolution=1):
+        
+        transmissionDelayPerByte = self.getTransmissionDelayFromDeliverRate(maxDeliveryRate)
+        newNode = HeapNode(self.nextNodeId, 
+                            maxDeliveryRate=maxDeliveryRate, 
+                            transmissionDelayPerByte = transmissionDelayPerByte,
+                            maxDataInPipe=maxDataInPipe, 
+                            maxQsize = maxQsize, 
+                            debug=debug, 
+                            resolution=resolution)
+        self.nodes[newNode.id] = newNode
+        self.nextNodeId += 1
+        return newNode
+        
+    
+    def createHeapNodes(self, n, 
+            maxDeliveryRate=50,
+            maxDataInPipe=100000,
+            maxQsize = 10000, 
+            debug=True, 
+            resolution=1):
+        
+        for _ in range(n):
+            self.createHeapNode(
+                            maxDeliveryRate=maxDeliveryRate, 
+                            maxDataInPipe=maxDataInPipe, 
+                            maxQsize = maxQsize, 
+                            debug=debug, 
+                            resolution=resolution
+                            )
         
         return self.nodes.values()
 

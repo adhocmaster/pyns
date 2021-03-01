@@ -6,37 +6,46 @@ from core.ConstClient import ConstClient
 from core.Server import Server
 from event.EventSimulator import EventSimulator
 from library.TimeUtils import TimeUtils
+from library.Configuration import Configuration
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, filename="debug.log")
 
+config = Configuration()
 
-
+timeResolutionUnit = config.get('timeResolutionUnit')
 network = Network.get()
 nodeManager = NodeManager()
-nodeManager.createSimpleNodes(n=10, resolution=10, debug=False)
+nodeManager.createSimpleNodes(n=10, resolution=10, maxDeliveryRate=500, debug=False)
+# nodeManager.createHeapNodes(n=10, resolution=10, debug=False)
 
 randomNodes = nodeManager.getRandomNodes(5)
 randomNodes2 = nodeManager.getRandomNodes(2)
 
-client = ConstClient(1, deliveryRate=1000, debug=True, resolution=10)
-client2 = ConstClient(2, deliveryRate=2000, debug=True, resolution=10)
+client = ConstClient(1, deliveryRate=1000, debug=True, timeResolutionUnit=timeResolutionUnit)
+client2 = ConstClient(2, deliveryRate=2000, debug=True, timeResolutionUnit=timeResolutionUnit)
 server = Server(-1)
 
 path = network.createPath(client=client, nodes=randomNodes, server=server)
 path2 = network.createPath(client=client2, nodes=randomNodes2, server=server)
 
 
-print("path for client1:")
-print([node.id for node in path.getNodesWithServer()])
-print("path for client2:")
-print([node.id for node in path2.getNodesWithServer()])
+logging.info("path for client1:")
+logging.info([node.id for node in path.getNodesWithServer()])
+logging.info("path for client2:")
+logging.info([node.id for node in path2.getNodesWithServer()])
 
-simulator = EventSimulator(timeResolutionUnit="ms", debug=True)
+simulator = EventSimulator(timeResolutionUnit=timeResolutionUnit, debug=True)
 
 simulator.addClient(client)
 simulator.addClient(client2)
 
-endAt = TimeUtils.getMS() + 10000
+# endAt = TimeUtils.getMS() + 1000
 
-while TimeUtils.getMS() < endAt:
+# while TimeUtils.getMS() < endAt:
+#     simulator.step()
+
+maxSteps = 5000 # equivalent to /1000 ms
+for _ in range(maxSteps):
     simulator.step()
+
+print(simulator.timeStep)

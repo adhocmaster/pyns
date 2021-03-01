@@ -3,6 +3,7 @@ from library.TimeUtils import TimeUtils
 from event.PacketEvent import PacketEvent
 from event.EventTypes import EventTypes
 import logging
+import math
 
 class PacketEventManager(ABC):
 
@@ -21,8 +22,8 @@ class PacketEventManager(ABC):
         return self.checkQueueEvents.get(eventName, None)
 
 
-    def createQueueEvent(self, node, timeStep):
-        return PacketEvent()
+    # def createQueueEvent(self, node, timeStep):
+    #     return PacketEvent()
 
 
     def processEvent(self, simulator, eventType, packet):
@@ -42,12 +43,19 @@ class PacketEventManager(ABC):
 
         # remove from current queue and schedule channel transmission
         if packet.curNodeIndex >= 0:
-            qPacket = packet.curNode.getFromQueue()
+            curNode = packet.curNode
+            qPacket = curNode.getFromQueue()
             if qPacket.id != packet.id:
                 raise Exception(f"Something happend in queue. Rmoved packet {qPacket.id} != {packet.id} ")
+            
+            delayMS = curNode.transmissionDelayPerByte * packet.size
+            arriveEventTimeStep = math.ceil(simulator.timeStep + simulator.convertTimeToSimulatorUnit(delayMS, 'ms'))
+            curNode.channelBusyUntil = arriveEventTimeStep
+            
+            if self.debug:
+                logging.debug(f"{self.name}: {simulator.timeStep}: Scheduled Arrive Event at {arriveEventTimeStep}")
 
-            delayMS = packet.curNode.transmissionDelayPerByte * packet.size
-            e = PacketEvent(EventTypes.ArriveNode, TimeUtils.getMS()+delayMS, packet)
+            e = PacketEvent(EventTypes.ArriveNode, arriveEventTimeStep, packet)
             return [e]
         
         else:
@@ -55,6 +63,20 @@ class PacketEventManager(ABC):
             
         return []
 
+
+
+    def getTimeToTransmit(self, node):
+        # maxDeliveryRate is in seconds
+        numInQ = node.getQueueSize()
+        timeToSendInMS = (numInQ * 1000) // node.maxDeliveryRate
+
+        if self.timeResolutionUnit == "ms":
+            return timeToSendInMS
+        if self.timeResolutionUnit == "mcs":
+            return timeToSendInMS * 1000
+        if self.timeResolutionUnit == "ns":
+            return timeToSendInMS * 1000_000
+        
 
 
     
@@ -66,9 +88,10 @@ class PacketEventManager(ABC):
             packet ([type]): [description]
         """
 
-        timeStep = TimeUtils.getMS()
+        # timeStep = TimeUtils.getMS()
+        timeStep = simulator.timeStep
 
-        # 1. update curNode and curNodeIndex
+        # 1. update curNode and curNodeIndex and release previous channel
         if packet.curNodeIndex < 0:
             packet.curNodeIndex = 0
         else:
@@ -81,6 +104,7 @@ class PacketEventManager(ABC):
             return []
 
         packet.curNode = packet.path._nodes[packet.curNodeIndex]
+        packet.nodeReceivedAt = timeStep # when the packet arrived to the queue.
         curNode = packet.curNode
 
         # 2. TODO add to queue
@@ -89,30 +113,29 @@ class PacketEventManager(ABC):
         # bytesInQueue = packet.curNode.getDataInQueueInBytes()
         # delivery rate in num packets
         # assuming queue is always delivering
-        numInQ = curNode.getQueueSize()
-        timeToSendInMS = (numInQ * 1000) // curNode.maxDeliveryRate
-        channelTimeStep = timeStep + timeToSendInMS
 
-        curNode.addToQueue(packet)
+        timeToTransmit = self.getTimeToTransmit(curNode)
+        channelTimeStep = timeStep + timeToTransmit + 1 # added one so that, other other pending events at the same timeStep does not wait.
+        if curNode.channelBusyUntil > timeStep:
+            logging.warn(f"{self.name}: {timeStep}: Channel {curNode.id} is busy until {curNode.channelBusyUntil}")
+            channelTimeStep = curNode.channelBusyUntil + timeToTransmit 
 
-        # schedule Channel event
-        e = PacketEvent(EventTypes.EnterChannel, channelTimeStep, packet)
+        try:
+            # add to Queue
+            curNode.addToQueue(packet)
 
-        if self.debug:
-            logging.debug(f"{self.name}: {timeStep}: Packet {packet.id} arrrived at node {curNode.id}")
-            logging.debug(f"{self.name}: {timeStep}: Scheduled Channel Event at {channelTimeStep}")
+            e = PacketEvent(EventTypes.EnterChannel, channelTimeStep, packet)
 
-        # 3. schedule check queue even if none for the queue already exists in the future timeStep
+            if self.debug:
+                logging.debug(f"{self.name}: {timeStep}: Packet {packet.id} arrrived at node {curNode.id}")
+                logging.debug(f"{self.name}: {timeStep}: Scheduled Channel Event at {channelTimeStep}")
 
-        # eventName = self.getQueueEventName(packet.curNode, timeStep)
+            return [e]
+        except Exception as e:
+            if self.debug:
+                logging.warn(e)
         
-        # if self.getQueueEvent(eventName) is not None:
-        #     # create an event
-        #     e = PacketEvent(EventTypes.CheckQueue, timeStep)
-        #     return [e]
-
-    
-        return [e]
+        return []
 
     def initiatePacketEvents(self, simulator, timeStep, packets):
         """This packets are entering the network from a client
