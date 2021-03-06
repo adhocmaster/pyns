@@ -41,12 +41,16 @@ class PacketEventManager(ABC):
             packet ([type]): [description]
         """
 
+
         # remove from current queue and schedule channel transmission
         if packet.curNodeIndex >= 0:
             curNode = packet.curNode
-            qPacket = curNode.getFromQueue()
+            if simulator.timeStep < curNode.channelBusyUntil:
+                raise Exception(f"{self.name}: channel {curNode.id} is busy when the packet {packet.id} is trying to enter.")
+
+            qPacket = curNode.getFromQueue() # packet is no more in the queue.
             if qPacket.id != packet.id:
-                raise Exception(f"Something happend in queue. Rmoved packet {qPacket.id} != {packet.id} ")
+                raise Exception(f"{self.name}: Something happend in queue. Rmoved packet {qPacket.id} != {packet.id} ")
             
             delayMS = curNode.transmissionDelayPerByte * packet.size
             arriveEventTimeStep = math.ceil(simulator.timeStep + simulator.convertTimeToSimulatorUnit(delayMS, 'ms'))
@@ -65,7 +69,7 @@ class PacketEventManager(ABC):
 
 
 
-    def getTimeToTransmit(self, node):
+    def getTimeToFlushQueue(self, node):
         # maxDeliveryRate is in seconds
         numInQ = node.getQueueSize()
         timeToSendInMS = (numInQ * 1000) // node.maxDeliveryRate
@@ -114,11 +118,11 @@ class PacketEventManager(ABC):
         # delivery rate in num packets
         # assuming queue is always delivering
 
-        timeToTransmit = self.getTimeToTransmit(curNode)
-        channelTimeStep = timeStep + timeToTransmit + 1 # added one so that, other other pending events at the same timeStep does not wait.
+        timeToStartTransmit = self.getTimeToFlushQueue(curNode)
+        channelTimeStep = timeStep + timeToStartTransmit + 1 # added one so that, other other pending events at the same timeStep does not wait.
         if curNode.channelBusyUntil > timeStep:
             logging.warn(f"{self.name}: {timeStep}: Channel {curNode.id} is busy until {curNode.channelBusyUntil}")
-            channelTimeStep = curNode.channelBusyUntil + timeToTransmit 
+            channelTimeStep = curNode.channelBusyUntil + timeToStartTransmit 
 
         try:
             # add to Queue

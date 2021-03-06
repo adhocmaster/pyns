@@ -46,6 +46,16 @@ class SimpleNode(Node):
         logging.info(f"SimpleNode {self.id}: Optimal data in flight = {(self.maxDeliveryRate * 30 * self.avgTTL) / 1000} KB" )
         
     
+    def __str__(self):
+
+        nodeProps = super().__str__()
+
+        return (
+            f"{nodeProps}"
+            f"\nmaxDeliveryRate: {self.maxDeliveryRate} packets/s"
+            f"\nmaxQsize: {self.maxQsize} packets"
+        )
+    
     def onIncomingPacket(self, packet, timeStep):
         
         

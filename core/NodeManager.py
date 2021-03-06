@@ -3,6 +3,7 @@ from core.HeapNode import HeapNode
 from core.NodeType import NodeType
 import numpy as np
 from library.Configuration import Configuration
+import logging
 
 class NodeManager:
 
@@ -10,9 +11,11 @@ class NodeManager:
         self.nodes = {}
         self.nextNodeId = 0
         self.config = Configuration()
+        self.name = "NodeManager"
 
 
-    def getTransmissionDelayFromDeliverRate(self, deliveryRateInS):
+    def getTransmissionDelayMSFromDeliverRate(self, deliveryRateInS):
+        # may be this should go to node implementation
 
         avgPacketSize = (self.config.get('minPacketSize') + self.config.get('maxPacketSize')) / 2
         return 1000 / (deliveryRateInS * avgPacketSize) 
@@ -26,7 +29,7 @@ class NodeManager:
             resolution=1):
 
         
-        transmissionDelayPerByte = self.getTransmissionDelayFromDeliverRate(maxDeliveryRate)
+        transmissionDelayPerByte = self.getTransmissionDelayMSFromDeliverRate(maxDeliveryRate)
 
         print(transmissionDelayPerByte)
         
@@ -39,6 +42,8 @@ class NodeManager:
                             resolution=resolution)
         self.nodes[newNode.id] = newNode
         self.nextNodeId += 1
+
+        logging.info(f"{self.name}: created node {newNode}")
         return newNode
         
     
@@ -70,7 +75,7 @@ class NodeManager:
             debug=True, 
             resolution=1):
         
-        transmissionDelayPerByte = self.getTransmissionDelayFromDeliverRate(maxDeliveryRate)
+        transmissionDelayPerByte = self.getTransmissionDelayMSFromDeliverRate(maxDeliveryRate)
         newNode = HeapNode(self.nextNodeId, 
                             maxDeliveryRate=maxDeliveryRate, 
                             transmissionDelayPerByte = transmissionDelayPerByte,

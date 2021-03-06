@@ -10,12 +10,14 @@ from library.Configuration import Configuration
 
 logging.basicConfig(level=logging.DEBUG, filename="debug.log")
 
+print(f"Logging file at: debug.log")
+
 config = Configuration()
 
 timeResolutionUnit = config.get('timeResolutionUnit')
 network = Network.get()
 nodeManager = NodeManager()
-nodeManager.createSimpleNodes(n=10, resolution=10, maxDeliveryRate=500, debug=False)
+nodeManager.createSimpleNodes(n=10, resolution=10, maxDeliveryRate=5000, debug=False)
 # nodeManager.createHeapNodes(n=10, resolution=10, debug=False)
 
 randomNodes = nodeManager.getRandomNodes(5)
@@ -44,7 +46,7 @@ simulator.addClient(client2)
 # while TimeUtils.getMS() < endAt:
 #     simulator.step()
 
-maxSteps = 5000 # equivalent to /1000 ms
+maxSteps = 5000 # equivalent to maxStep timeResolution unit
 for _ in range(maxSteps):
     simulator.step()
 

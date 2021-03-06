@@ -70,21 +70,13 @@ class EventSimulator(object):
 
     def step(self):
         """Performs one step of the event simulator."""
-        # Gets the first event.
-        # check the timing for the first event, if it's due, pop it
-        # how about multiple?
+        
         if self.debug:
             self.printEvents()
 
         # timeStep = self.getCurrentTime()
         timeStep = self.timeStep
 
-        # # 1. let clients create events first
-        # self.createClientEvents(timeStep)
-
-        # # 2. now process events!
-        # if len(self.future_events) == 0:
-        #     return
 
 
         while len(self.future_events) > 0 and self.future_events[0].time <= timeStep:
@@ -111,6 +103,7 @@ class EventSimulator(object):
 
 
     def createClientEvents(self, timeStep):
+        # 1. Clients need to be allowed to create events instead of creating packets. So, let the client schedule it's own packets.  outstanding packets.
         for client in self.clients:
             packets = client.createPacketsForTimeStep(timeStep)
             self.eventManager.initiatePacketEvents(self, timeStep, packets)
@@ -118,3 +111,4 @@ class EventSimulator(object):
 
             if self.debug and len(packets) > 0:
                 logging.debug(f"{self.name}: {timeStep}: initiated {len(packets)} packets from client {client.id}")
+

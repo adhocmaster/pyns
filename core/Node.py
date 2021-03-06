@@ -32,6 +32,17 @@ class Node(ABC):
         self.timeResolutionUnit = timeResolutionUnit
         self.channelBusyUntil = 0 
     
+
+    def __str__(self):
+
+        return (
+            f"\nid: {self.id}"
+            f"\nnodeType: {self.nodeType}"
+            f"\ntransmissionDelayPerByte: {self.transmissionDelayPerByte} ms"
+            f"\nmaxDataInPipe: {self.maxDataInPipe} KB"
+            f"\ntimeResolutionUnit: {self.timeResolutionUnit}"
+            f"\ndebug: {self.debug}"
+        )
     
     def isPipeFull(self):
         return self.dataInPipe >= self.maxDataInPipe
