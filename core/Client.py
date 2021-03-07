@@ -33,6 +33,7 @@ class Client(ABC):
         self.path = None
         self.timeResolutionUnit = timeResolutionUnit
         self.simulator = None
+        self.stats = {}
 
     
     def __str__(self):
@@ -168,6 +169,8 @@ class Client(ABC):
         """
         pass
 
+    def getOutStandingPackets(self):
+        return None
     
     def onFinish(self):
         """To be called after simulation is finished

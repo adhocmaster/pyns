@@ -53,3 +53,31 @@ class Path:
                 foundNode = True
 
         return None
+    
+
+    def getFirstBottleNeck(self):
+
+        for i in range(len(self._nodes) - 1): # ignore server
+            node = self._nodes[i]
+            if node.getQueueSize() > 0:
+                return node
+        return None
+
+    
+    def getDataInFlightInKB(self):
+        # all the data in the queue
+        data = 0
+        for i in range(len(self._nodes) - 1): # ignore server
+            node = self._nodes[i]
+            data += node.getDataInFlightInKB()
+
+        return data
+
+    def getNumPacketInflight(self):
+        # all the packets in the queues and channels.
+        num = 0
+        for i in range(len(self._nodes) - 1): # ignore server
+            node = self._nodes[i]
+            num += node.getNumPacketInflight()
+
+        return num

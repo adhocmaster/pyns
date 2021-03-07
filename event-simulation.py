@@ -9,7 +9,7 @@ from event.EventSimulator import EventSimulator
 from library.TimeUtils import TimeUtils
 from library.Configuration import Configuration
 
-logging.basicConfig(level=logging.DEBUG, filename="debug.log")
+logging.basicConfig(level=logging.INFO, filename="debug.log")
 
 print(f"Logging file at: debug.log")
 
@@ -25,7 +25,7 @@ randomNodes = nodeManager.getRandomNodes(5)
 randomNodes2 = nodeManager.getRandomNodes(2)
 
 client = ConstClient(1, deliveryRate=1000, debug=True, timeResolutionUnit=timeResolutionUnit)
-client2 = AIClient(2, delay_between_packets=5, max_outstanding_packets=5, debug=True)
+client2 = AIClient(2, delay_between_packets=5, max_outstanding_packets=500, debug=True)
 server = Server(-1)
 
 path = network.createPath(client=client, nodes=randomNodes, server=server)
@@ -50,7 +50,5 @@ logging.info(simulator)
 #     simulator.step()
 
 maxSteps = 5000 # equivalent to maxStep timeResolution unit
-for _ in range(maxSteps):
-    simulator.step()
-
+simulator.run(maxSteps)
 print(simulator.timeStep)

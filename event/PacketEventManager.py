@@ -52,6 +52,8 @@ class PacketEventManager(ABC):
             if qPacket.id != packet.id:
                 raise Exception(f"{self.name}: Something happend in queue {curNode.id}. Rmoved packet {qPacket.id} != {packet.id} ")
             
+            curNode.channelPacket = packet
+
             delayMS = curNode.transmissionDelayPerByte * packet.size
             arriveEventTimeStep = math.ceil(simulator.timeStep + simulator.convertTimeToSimulatorUnit(delayMS, 'ms'))
             curNode.channelBusyUntil = arriveEventTimeStep
@@ -99,6 +101,7 @@ class PacketEventManager(ABC):
         if packet.curNodeIndex < 0:
             packet.curNodeIndex = 0
         else:
+            packet.curNode.channelPacket = None # clearning packet from previous node
             packet.curNodeIndex += 1
 
         # it will never overflow as server stops the packet propagation

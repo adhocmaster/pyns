@@ -31,6 +31,7 @@ class Node(ABC):
         self.forceStop = False
         self.timeResolutionUnit = timeResolutionUnit
         self.channelBusyUntil = 0 
+        self.channelPacket = None
     
 
     def __str__(self):

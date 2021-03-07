@@ -50,6 +50,9 @@ class AIClient(Client):
     def createPacketsForTimeStep(self, timeStep):
         pass
 
+    def getOutStandingPackets(self):
+        return self.outstanding_packets
+    
 
     def onACK(self, packet):
 

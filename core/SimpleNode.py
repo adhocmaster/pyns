@@ -160,7 +160,10 @@ class SimpleNode(Node):
 
     
     def getNumPacketInflight(self):
-        return self.getNumPacketInPipe() + self.getQueueSize()
+        # return self.getNumPacketInPipe() + self.getQueueSize()
+        if self.channelPacket is None:
+            return self.getQueueSize()
+        return self.getQueueSize() + 1
         
 
     def updateTTL(self, packet):
@@ -171,7 +174,10 @@ class SimpleNode(Node):
 
 
     def getDataInFlightInKB(self):
-        return self.getDataInPipeInKB() + self.getDataInQueueInKB()
+        # return self.getDataInPipeInKB() + self.getDataInQueueInKB()
+        if self.channelPacket is None:
+            return self.getDataInQueueInKB()
+        return (self.channelPacket.size / 1000) + self.getDataInQueueInKB()
     
     # Queue methods start
     def getDataInQueueInBytes(self):
@@ -182,7 +188,7 @@ class SimpleNode(Node):
 
     
     def getDataInQueueInKB(self):
-        return round(self.getDataInQueueInBytes(), 2)
+        return round(self.getDataInQueueInBytes() / 1000, 2)
 
 
     

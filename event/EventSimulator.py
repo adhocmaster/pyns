@@ -4,18 +4,23 @@ from library.TimeUtils import TimeUtils
 import logging
 from event.PacketEventManager import PacketEventManager
 import pprint
-class EventSimulator(object):
+from sim.Simulator import Simulator
+class EventSimulator(Simulator):
 
-    def __init__(self, timeResolutionUnit, startTimeStep=0, future_events=None, debug=False):
+    def __init__(self, timeResolutionUnit, startTimeStep=0, future_events=None, debug=False, printStatFreq=1000):
         
+        super().__init__()
+
         self.future_events = future_events or []
         self.timeResolutionUnit = timeResolutionUnit
         self.name="EventSimulator"
-        self.debug = debug
         self.eventManager = PacketEventManager(timeResolutionUnit, debug=debug)
         self.clients = []
         self.pp = pprint.PrettyPrinter(indent=4)
         self.timeStep = startTimeStep
+        self.printStatFreq = printStatFreq # print every printStatFreq time step
+        self.debug = debug
+        
 
     def __str__(self):
         return (
@@ -28,6 +33,19 @@ class EventSimulator(object):
         client.lastTimeStep = self.timeStep
         client.setSimulator(self)
         self.clients.append(client)
+
+        client.stats['outStandingPackets'] = []
+        client.stats['dataInFlight'] = []
+        client.stats['packetsInFlight'] = []
+        client.stats['packetsSent'] = []
+        client.stats['packetsAcked'] = []
+        client.stats['totalPacketsSent'] = []
+        client.stats['totalPacketsAcked'] = []
+
+        client.stats["bottleNeck"] = []
+        client.stats['dataInQueue'] = []
+        client.stats['packetsInQueue'] = []
+        
         
 
     def add_event(self, e):
@@ -35,6 +53,7 @@ class EventSimulator(object):
         heapq.heappush(self.future_events, e)
         if self.debug:
             self.logEvents()
+
 
     
     def pop_event(self):
@@ -85,6 +104,53 @@ class EventSimulator(object):
         for e in self.future_events:
             eStr.append( f"{e.time}: {e.name.name} p#{e.packet.id}")
         logging.debug(f"{self.name}: {self.timeStep}: Events: " + self.pp.pformat(eStr))
+
+        
+    def run(self, maxSteps):
+
+        # self.validateEnv()
+
+        totalPacketsSent = 0
+        totalPacketsAcked = 0
+
+        for timeStep in range(maxSteps):
+            self.step()
+            self.collectStatsForClients()
+
+            # 4. print stats
+            if timeStep % self.printStatFreq == 0:
+                logging.info(f"{self.name}: *************************************************** TimeStep {timeStep} ***********************************************")
+                self.logClientStats(timeStep)
+
+            
+
+        pass
+
+
+    def logClientStats(self, timeStep):
+        for client in self.clients:
+            logging.info(f"Client {client.id}: Stats")
+            logging.info(f"outStandingPackets: {client.stats['outStandingPackets'][timeStep]}")
+            logging.info(f"bottleNeck: {client.stats['bottleNeck'][timeStep]}")
+            logging.info(f"dataInFlight: {client.stats['dataInFlight'][timeStep]}KB")
+            logging.info(f"dataInQueue {client.stats['dataInQueue'][timeStep]}KB")
+            logging.info(f"packetsInFlight: {client.stats['packetsInFlight'][timeStep]}")
+            logging.info(f"packetsInQueue: {client.stats['packetsInQueue'][timeStep]}")
+
+
+    def collectStatsForClients(self):
+        for client in self.clients:
+            bottleNeck = client.path.getFirstBottleNeck()
+            if bottleNeck is None:
+                bottleNeck = client.path.getFirstNode()
+
+            client.stats['outStandingPackets'].append(client.getOutStandingPackets())
+            client.stats['dataInFlight'].append(client.path.getDataInFlightInKB())
+            client.stats['packetsInFlight'].append(client.path.getNumPacketInflight())
+
+            client.stats["bottleNeck"].append(bottleNeck)
+            client.stats['dataInQueue'].append(bottleNeck.getDataInQueueInKB())
+            client.stats['packetsInQueue'].append(bottleNeck.getQueueSize())
 
     def step(self):
         """Performs one step of the event simulator."""
