@@ -14,6 +14,19 @@ class Path:
         self._nodes.append(self.server)
 
     
+    def __str__(self):
+
+        nodeStr = ""
+        for node in self._nodes:
+            nodeStr += ", " + str(node.id)
+
+        return (
+            f" \n\tid: {self.id}"
+            f" \n\tclient: {self.client.id}"
+            f" \n\tnodes: {nodeStr}"
+            f" \n\tserver: {self.server.id}"
+        )
+    
     def addClient(self, client: Client):
         self.client = Client
 
