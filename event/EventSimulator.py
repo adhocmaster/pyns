@@ -17,6 +17,12 @@ class EventSimulator(object):
         self.pp = pprint.PrettyPrinter(indent=4)
         self.timeStep = startTimeStep
 
+    def __str__(self):
+        return (
+            f"\n name: {self.name}"
+            f"\n debug: {self.debug}"
+            f"\n timeResolutionUnit: {self.timeResolutionUnit}"
+        )
     
     def addClient(self, client):
         client.lastTimeStep = self.timeStep
@@ -26,7 +32,18 @@ class EventSimulator(object):
     def add_event(self, e):
         """Adds an event e, maintaining the heap invariant."""
         heapq.heappush(self.future_events, e)
+        if self.debug:
+            self.logEvents()
 
+    
+    def pop_event(self):
+        e = heapq.heappop(self.future_events)
+        if self.debug:
+            self.logEvents()
+        return e
+
+    def hasDueEvent(self, timeStep):
+        return len(self.future_events) > 0 and self.future_events[0].time <= timeStep
     
     def getCurrentTime(self):
         if self.timeResolutionUnit == 'ms':
@@ -60,27 +77,25 @@ class EventSimulator(object):
             
         raise NotImplementedError()
 
-    def printEvents(self):
+    def logEvents(self):
         if len(self.future_events) == 0:
             return
         eStr = []
         for e in self.future_events:
             eStr.append( f"{e.time}: {e.name.name} p#{e.packet.id}")
-        logging.debug(f"{self.name}: {self.timeStep}: " + self.pp.pformat(eStr))
+        logging.debug(f"{self.name}: {self.timeStep}: Events: " + self.pp.pformat(eStr))
 
     def step(self):
         """Performs one step of the event simulator."""
         
-        if self.debug:
-            self.printEvents()
 
         # timeStep = self.getCurrentTime()
         timeStep = self.timeStep
 
 
 
-        while len(self.future_events) > 0 and self.future_events[0].time <= timeStep:
-            e = heapq.heappop(self.future_events)
+        while self.hasDueEvent(timeStep):
+            e = self.pop_event()
 
             if self.debug:
                 logging.debug(f"{self.name}: {timeStep}: raised event ({e.name}, {e.time})")

@@ -13,7 +13,7 @@ class Node(ABC):
             transmissionDelayPerByte = 0.0001,
             maxDataInPipe=1000.0,
             avgTTL=20, noiseMax=20, debug=True,
-            timeResolutionUnit='ms', 
+            timeResolutionUnit=None, 
             resolution=1):
         self.id = id
         self.nodeType = nodeType

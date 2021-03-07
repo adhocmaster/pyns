@@ -41,6 +41,8 @@ simulator = EventSimulator(timeResolutionUnit=timeResolutionUnit, debug=True)
 simulator.addClient(client)
 simulator.addClient(client2)
 
+logging.info(simulator)
+
 # endAt = TimeUtils.getMS() + 1000
 
 # while TimeUtils.getMS() < endAt:

@@ -15,7 +15,7 @@ class SimpleNode(Node):
                     maxQsize = 10000, 
                     avgTTL=20, noiseMax=20,
                     debug=True, 
-                    timeResolutionUnit='ms', 
+                    timeResolutionUnit=None, 
                     resolution=1
                 ):
 
