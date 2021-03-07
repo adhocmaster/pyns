@@ -5,3 +5,4 @@ class SenderType(Enum):
     Noob = "Noob"
     Tahoe = "Tahoe"
     BBR = "BBR"
+    AI = 'AI'

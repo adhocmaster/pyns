@@ -3,6 +3,7 @@ import logging
 from core.NodeManager import NodeManager
 from core.Network import Network
 from core.ConstClient import ConstClient
+from core.AIClient import AIClient
 from core.Server import Server
 from event.EventSimulator import EventSimulator
 from library.TimeUtils import TimeUtils
@@ -24,7 +25,7 @@ randomNodes = nodeManager.getRandomNodes(5)
 randomNodes2 = nodeManager.getRandomNodes(2)
 
 client = ConstClient(1, deliveryRate=1000, debug=True, timeResolutionUnit=timeResolutionUnit)
-client2 = ConstClient(2, deliveryRate=2000, debug=True, timeResolutionUnit=timeResolutionUnit)
+client2 = AIClient(2, delay_between_packets=5, max_outstanding_packets=5, debug=True)
 server = Server(-1)
 
 path = network.createPath(client=client, nodes=randomNodes, server=server)

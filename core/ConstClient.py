@@ -51,15 +51,16 @@ class ConstClient(Client):
         Args:
             timeStep ([type]): [description]
         """
-        if self.debug:
-            logging.debug(f"{self.thread.getName()}: running at timeStep {timeStep}")
+        # if self.debug:
+        #     logging.debug(f"{self.thread.getName()}: running at timeStep {timeStep}")
 
-        packets = self.createPacketsForTimeStep(timeStep)
+        # packets = self.createPacketsForTimeStep(timeStep)
 
-        # send the packets to next node
-        self.send(packets, timeStep)
+        # # send the packets to next node
+        # self.send(packets, timeStep)
 
-        pass
+        # pass
+        return
 
 
 

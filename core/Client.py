@@ -32,6 +32,7 @@ class Client(ABC):
         self.nextNode = None
         self.path = None
         self.timeResolutionUnit = timeResolutionUnit
+        self.simulator = None
 
     
     def __str__(self):
@@ -45,6 +46,9 @@ class Client(ABC):
         f"\tdebug: {self.debug} \n"
         )
         
+    def setSimulator(self, simulator):
+        self.simulator = simulator
+
     def getName(self):
         return self.type.name + " #" + str(self.id)
 
@@ -84,7 +88,7 @@ class Client(ABC):
     def createPacket(self, size, sentAt):
         
         packetId = self.getNewPacketId()
-        return Packet(packetId, self,size=size, sentAt=sentAt)
+        return Packet(packetId, self, path=self.path, size=size, sentAt=sentAt)
     
     def createPackets(self, numberOfPackets, sentAt):
 

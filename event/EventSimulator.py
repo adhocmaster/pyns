@@ -26,6 +26,7 @@ class EventSimulator(object):
     
     def addClient(self, client):
         client.lastTimeStep = self.timeStep
+        client.setSimulator(self)
         self.clients.append(client)
         
 
@@ -98,7 +99,7 @@ class EventSimulator(object):
             e = self.pop_event()
 
             if self.debug:
-                logging.debug(f"{self.name}: {timeStep}: raised event ({e.name}, {e.time})")
+                logging.debug(f"{self.name}: {timeStep}: raised event ({e.name}, {e.time}) with packet {e.packet.id} which is currently at {e.packet.curNodeIndex}th node")
             # Causes e to happen.
             # generated_events = e.do()
             generated_events = self.eventManager.processEvent(self, e.name, e.packet)
@@ -111,7 +112,8 @@ class EventSimulator(object):
                 self.add_event(ge)
 
         # 1. let clients create events first
-        self.createClientEvents(timeStep)
+        self.notifyClients(timeStep)
+        # self.createClientEvents(timeStep)
 
         self.timeStep += 1
 
@@ -126,4 +128,9 @@ class EventSimulator(object):
 
             if self.debug and len(packets) > 0:
                 logging.debug(f"{self.name}: {timeStep}: initiated {len(packets)} packets from client {client.id}")
+
+    def notifyClients(self, timeStep):
+        # 1. Clients need to be allowed to create events instead of creating packets. So, let the client schedule it's own packets.  outstanding packets.
+        for client in self.clients:
+            client.onTimeStep(timeStep)
 

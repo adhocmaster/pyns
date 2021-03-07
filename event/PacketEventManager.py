@@ -50,7 +50,7 @@ class PacketEventManager(ABC):
 
             qPacket = curNode.getFromQueue() # packet is no more in the queue.
             if qPacket.id != packet.id:
-                raise Exception(f"{self.name}: Something happend in queue. Rmoved packet {qPacket.id} != {packet.id} ")
+                raise Exception(f"{self.name}: Something happend in queue {curNode.id}. Rmoved packet {qPacket.id} != {packet.id} ")
             
             delayMS = curNode.transmissionDelayPerByte * packet.size
             arriveEventTimeStep = math.ceil(simulator.timeStep + simulator.convertTimeToSimulatorUnit(delayMS, 'ms'))
@@ -72,14 +72,14 @@ class PacketEventManager(ABC):
     def getTimeToFlushQueue(self, node):
         # maxDeliveryRate is in seconds
         numInQ = node.getQueueSize()
-        timeToSendInMS = (numInQ * 1000) // node.maxDeliveryRate
+        timeToSendInNS = (numInQ * 1000_000_000) // node.maxDeliveryRate
 
         if self.timeResolutionUnit == "ms":
-            return timeToSendInMS
+            return timeToSendInNS // 1000_000
         if self.timeResolutionUnit == "mcs":
-            return timeToSendInMS * 1000
+            return timeToSendInNS // 1000
         if self.timeResolutionUnit == "ns":
-            return timeToSendInMS * 1000_000
+            return timeToSendInNS
         
 
 
@@ -122,7 +122,7 @@ class PacketEventManager(ABC):
         channelTimeStep = timeStep + timeToStartTransmit + 1 # added one so that, other other pending events at the same timeStep does not wait.
         if curNode.channelBusyUntil > timeStep:
             logging.warn(f"{self.name}: {timeStep}: Channel {curNode.id} is busy until {curNode.channelBusyUntil}")
-            channelTimeStep = curNode.channelBusyUntil + timeToStartTransmit 
+            channelTimeStep = curNode.channelBusyUntil + timeToStartTransmit + 1 
 
         try:
             # add to Queue
