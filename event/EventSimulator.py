@@ -32,6 +32,7 @@ class EventSimulator(Simulator):
     def addClient(self, client):
         client.lastTimeStep = self.timeStep
         client.setSimulator(self)
+        client.timeResolutionUnit = self.timeResolutionUnit
         self.clients.append(client)
 
         client.stats['outStandingPackets'] = []
@@ -141,6 +142,8 @@ class EventSimulator(Simulator):
 
 
     def collectStatsForClients(self):
+        """Runs every timestep
+        """
         for client in self.clients:
             bottleNeck = client.path.getFirstBottleNeck()
             if bottleNeck is None:
@@ -150,7 +153,7 @@ class EventSimulator(Simulator):
             client.stats['dataInFlight'].append(client.path.getDataInFlightInKB())
             client.stats['packetsInFlight'].append(client.path.getNumPacketInflight())
 
-            client.stats["bottleNeck"].append(bottleNeck)
+            client.stats["bottleNeck"].append(bottleNeck.id)
             client.stats['dataInQueue'].append(bottleNeck.getDataInQueueInKB())
             client.stats['packetsInQueue'].append(bottleNeck.getQueueSize())
 

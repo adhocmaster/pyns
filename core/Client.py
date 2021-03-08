@@ -35,6 +35,7 @@ class Client(ABC):
         self.simulator = None
         self.stats = {}
         self.stats['packetsAcked'] = []
+        self.stats['ttlMS'] = []
 
     
     def __str__(self):
@@ -194,9 +195,28 @@ class Client(ABC):
     @abstractmethod
     def onShutDown(self, maxSteps):
         # calculate more stats
+        self.totalPacketsAcked = 0
+        prevTTL = 0
         for ts  in range(maxSteps):
-            self.stats['packetsAcked'].append(len(self.ackedPackets.get(ts, [])))
+            numPacketsInTS = len(self.ackedPackets.get(ts, []))
+            self.stats['packetsAcked'].append(numPacketsInTS)
+            self.totalPacketsAcked += numPacketsInTS
+            self.stats['totalPacketsAcked'].append(self.totalPacketsAcked)
+
+            # ttl values
+            if numPacketsInTS > 0:
+                prevTTL = self.getAvgTTLMS(self.ackedPackets[ts])
+            self.stats['ttlMS'].append(prevTTL)
+
         pass
+
+    def getAvgTTLMS(self, packets):
+        ttl = 0
+        for packet in packets:
+            ttl += packet.ttl
+        
+        ttl = TimeUtils.convertToMS(ttl, self.timeResolutionUnit, round=False)
+        return ttl / len(packets)
     
     def send(self, packets, timeStep):
         if self.debug:

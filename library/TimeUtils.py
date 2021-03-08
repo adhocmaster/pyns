@@ -10,21 +10,35 @@ class TimeUtils:
         return time.time_ns() // 1_000 
 
     @staticmethod
-    def convertToMS(amount, timeResolutionUnit):
+    def convertToMS(amount, timeResolutionUnit, round=True):
         
-        if timeResolutionUnit == 'ms':
-            return amount
-        if timeResolutionUnit == 'mcs':
-            return amount // 1_000
-        if timeResolutionUnit == 'ns':
-            return amount //  1_000_000
+        if round:
+            if timeResolutionUnit == 'ms':
+                return amount
+            if timeResolutionUnit == 'mcs':
+                return amount // 1_000
+            if timeResolutionUnit == 'ns':
+                return amount //  1_000_000
+        else:
+            if timeResolutionUnit == 'ms':
+                return amount
+            if timeResolutionUnit == 'mcs':
+                return amount / 1_000
+            if timeResolutionUnit == 'ns':
+                return amount /  1_000_000
 
     @staticmethod
-    def convertToMCS(amount, timeResolutionUnit):
+    def convertToMCS(amount, timeResolutionUnit, round=True):
         
         if timeResolutionUnit == 'ms':
             raise Exception("Cannot convert miliseconds to microseconds due to precision loss.")
-        if timeResolutionUnit == 'mcs':
-            return amount
-        if timeResolutionUnit == 'ns':
-            return amount //  1_000
+        if round:
+            if timeResolutionUnit == 'mcs':
+                return amount
+            if timeResolutionUnit == 'ns':
+                return amount //  1_000
+        else:
+            if timeResolutionUnit == 'mcs':
+                return amount
+            if timeResolutionUnit == 'ns':
+                return amount /  1_000
