@@ -34,6 +34,7 @@ class Client(ABC):
         self.timeResolutionUnit = timeResolutionUnit
         self.simulator = None
         self.stats = {}
+        self.stats['packetsAcked'] = []
 
     
     def __str__(self):
@@ -183,10 +184,19 @@ class Client(ABC):
 
 
     @abstractmethod
-    def onACK(self, packet):
-        self.ackedPackets[packet.getPacketNumber()] = packet
+    def onACK(self, packet, timeStep=None):
+        packets = self.ackedPackets.get(timeStep, [])
+        packets.append(packet)
+        self.ackedPackets[timeStep] = packets
+        # self.ackedPackets[packet.getPacketNumber()] = packet
         pass
 
+    @abstractmethod
+    def onShutDown(self, maxSteps):
+        # calculate more stats
+        for ts  in range(maxSteps):
+            self.stats['packetsAcked'].append(len(self.ackedPackets.get(ts, [])))
+        pass
     
     def send(self, packets, timeStep):
         if self.debug:

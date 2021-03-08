@@ -124,6 +124,8 @@ class EventSimulator(Simulator):
 
             
 
+        for client in self.clients:
+            client.onShutDown(maxSteps)
         pass
 
 

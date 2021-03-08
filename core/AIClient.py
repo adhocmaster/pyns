@@ -19,6 +19,7 @@ class AIClient(Client):
         self.outstanding_packets = 0
         self.lastTimeStep = 0
 
+        self.stats['outStandingPackets'] = []
     
     
     def __str__(self):
@@ -54,12 +55,16 @@ class AIClient(Client):
         return self.outstanding_packets
     
 
-    def onACK(self, packet):
+    def onACK(self, packet, timeStep=None):
+
+        super().onACK(packet, timeStep)
 
 
         self.outstanding_packets -= 1
         if self.debug:
             logging.debug(f"AIClient {self.id}: outstanding packets: {self.outstanding_packets}")
+        
+
         # self.ackedPackets[packet.getPacketNumber()] = packet
         # raise NotImplementedError()
 
@@ -81,6 +86,8 @@ class AIClient(Client):
                 logging.debug(f"AIClient {self.id}: created packet with id {packet.id}")
                 logging.debug(f"AIClient {self.id}: outstanding packets: {self.outstanding_packets}")
         
-            
+        # self.stats['outStandingPackets'] = self.outstanding_packets
         
-
+            
+    def onShutDown(self, maxSteps):
+        super().onShutDown(maxSteps)

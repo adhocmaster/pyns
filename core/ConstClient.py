@@ -66,9 +66,9 @@ class ConstClient(Client):
 
     
 
-    def onACK(self, packet):
+    def onACK(self, packet, timeStep=None):
 
-        super().onACK(packet)
+        super().onACK(packet, timeStep=timeStep)
 
         if self.debug:
             logging.debug(f"Client {self.id}: got ACK for packet no {packet.getPacketNumber()}")
@@ -78,3 +78,7 @@ class ConstClient(Client):
         # if self.debug:
         #     logging.info(f"{self.getName()}: got ack for packet {packet.getPacketNumber()}")
         pass
+
+    
+    def onShutDown(self, maxSteps):
+        super().onShutDown(maxSteps)

@@ -1,5 +1,5 @@
 import pandas as pd
-from model.Packet import Packet
+from core.Packet import Packet
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -80,6 +80,35 @@ class AnalyzerTools:
         plt.ylabel("ttl in ms")
         plt.legend()
         plt.show()
+    
+
+    def createPlotForTimeSteps(self, statsDic, columnName, figsize=(20,10)):
+        plt.figure(figsize=figsize)
+        timeSteps = list(range(len(statsDic[columnName])))
+        plt.plot(timeSteps, statsDic[columnName], label=columnName)
+        plt.title(f"{columnName} stats")
+        plt.xlabel("Time Step")
+        plt.ylabel(f"{columnName}")
+        plt.legend()
+        plt.show()
+
+    def createPlotsForTimeSteps(self, statsDic, columnNames, figsize=(20,10)):
+        plt.figure(figsize=figsize)
+        timeSteps = list(range(len(statsDic[columnNames[0]])))
+
+
+
+        for columnName in columnNames:
+            if len(timeSteps) != len(statsDic[columnName]):
+                raise Exception("Not all the columns have same number of items")
+            plt.plot(timeSteps, statsDic[columnName], label=columnName)
+
+        plt.title(f"Stats")
+        plt.xlabel("Time Step")
+        plt.ylabel(f"values")
+        plt.legend()
+        plt.show()
+
 
 
 

@@ -8,6 +8,7 @@ from core.Server import Server
 from event.EventSimulator import EventSimulator
 from library.TimeUtils import TimeUtils
 from library.Configuration import Configuration
+from sim.AnalyzerTools import AnalyzerTools
 
 logging.basicConfig(level=logging.INFO, filename="debug.log")
 
@@ -25,7 +26,7 @@ randomNodes = nodeManager.getRandomNodes(5)
 randomNodes2 = nodeManager.getRandomNodes(2)
 
 client = ConstClient(1, deliveryRate=1000, debug=True, timeResolutionUnit=timeResolutionUnit)
-client2 = AIClient(2, delay_between_packets=5, max_outstanding_packets=500, debug=True)
+client2 = AIClient(2, delay_between_packets=5, max_outstanding_packets=50, debug=True)
 server = Server(-1)
 
 path = network.createPath(client=client, nodes=randomNodes, server=server)
@@ -52,3 +53,11 @@ logging.info(simulator)
 maxSteps = 5000 # equivalent to maxStep timeResolution unit
 simulator.run(maxSteps)
 print(simulator.timeStep)
+
+# visualization for client 2
+
+analyzer = AnalyzerTools()
+
+# analyzer.createPlotForTimeSteps(client2.stats, 'outStandingPackets')
+analyzer.createPlotsForTimeSteps(client2.stats, ['outStandingPackets', 'packetsAcked'])
+# 
