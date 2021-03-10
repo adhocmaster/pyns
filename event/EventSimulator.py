@@ -123,6 +123,10 @@ class EventSimulator(Simulator):
                 logging.info(f"{self.name}: *************************************************** TimeStep {timeStep} ***********************************************")
                 self.logClientStats(timeStep)
 
+
+            for client in self.clients:
+                print(client.path.getNodeStats())
+
             
 
         for client in self.clients:
@@ -146,16 +150,20 @@ class EventSimulator(Simulator):
         """
         for client in self.clients:
             bottleNeck = client.path.getFirstBottleNeck()
-            if bottleNeck is None:
-                bottleNeck = client.path.getFirstNode()
+            if bottleNeck is not None:
+                client.stats["bottleNeck"].append(bottleNeck.id)
+                client.stats['dataInQueue'].append(bottleNeck.getDataInQueueInKB())
+                client.stats['packetsInQueue'].append(bottleNeck.getQueueSize())
+            else:
+                client.stats["bottleNeck"].append(0)
+                client.stats['dataInQueue'].append(0)
+                client.stats['packetsInQueue'].append(0)
 
+
+            # path stats
             client.stats['outStandingPackets'].append(client.getOutStandingPackets())
             client.stats['dataInFlight'].append(client.path.getDataInFlightInKB())
             client.stats['packetsInFlight'].append(client.path.getNumPacketInflight())
-
-            client.stats["bottleNeck"].append(bottleNeck.id)
-            client.stats['dataInQueue'].append(bottleNeck.getDataInQueueInKB())
-            client.stats['packetsInQueue'].append(bottleNeck.getQueueSize())
 
     def step(self):
         """Performs one step of the event simulator."""
@@ -184,7 +192,7 @@ class EventSimulator(Simulator):
 
         # 1. let clients create events first
         self.notifyClients(timeStep)
-        # self.createClientEvents(timeStep)
+        self.createClientEvents(timeStep)
 
         self.timeStep += 1
 

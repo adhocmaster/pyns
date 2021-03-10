@@ -46,13 +46,13 @@ class PacketEventManager(ABC):
         if packet.curNodeIndex >= 0:
             curNode = packet.curNode
             if simulator.timeStep < curNode.channelBusyUntil:
-                raise Exception(f"{self.name}: channel {curNode.id} is busy when the packet {packet.id} is trying to enter.")
+                raise Exception(f"{self.name}: channel {curNode.id} is busy till {curNode.channelBusyUntil} with packet {curNode.channelPacket.id} when the packet {packet.id} is trying to enter.")
 
             qPacket = curNode.getFromQueue() # packet is no more in the queue.
             if qPacket.id != packet.id:
                 raise Exception(f"{self.name}: Something happend in queue {curNode.id}. Rmoved packet {qPacket.id} != {packet.id} ")
             
-            curNode.channelPacket = packet
+            curNode.channelPacket = packet # while the packet is transmitting, keep it in the channel packet.
 
             delayMS = curNode.transmissionDelayPerByte * packet.size
             arriveEventTimeStep = math.ceil(simulator.timeStep + simulator.convertTimeToSimulatorUnit(delayMS, 'ms'))
@@ -75,15 +75,16 @@ class PacketEventManager(ABC):
         # maxDeliveryRate is in seconds
         numInQ = node.getQueueSize()
         timeToSendInNS = (numInQ * 1000_000_000) // node.maxDeliveryRate
+        timeToSend = numInQ
 
         if self.timeResolutionUnit == "ms":
-            return timeToSendInNS // 1000_000
+            timeToSend += (timeToSendInNS // 1000_000)
         if self.timeResolutionUnit == "mcs":
-            return timeToSendInNS // 1000
+            timeToSend += (timeToSendInNS // 1000)
         if self.timeResolutionUnit == "ns":
-            return timeToSendInNS
+            timeToSend += timeToSendInNS
         
-
+        return timeToSend
 
     
     def ArriveNode(self, simulator, packet):

@@ -10,7 +10,7 @@ from library.TimeUtils import TimeUtils
 from library.Configuration import Configuration
 from sim.AnalyzerTools import AnalyzerTools
 
-logging.basicConfig(level=logging.INFO, filename="debug.log")
+logging.basicConfig(level=logging.DEBUG, filename="debug.log")
 
 print(f"Logging file at: debug.log")
 
@@ -22,15 +22,17 @@ nodeManager = NodeManager()
 nodeManager.createSimpleNodes(n=4, resolution=10, maxDeliveryRate=5000, debug=False)
 # nodeManager.createHeapNodes(n=10, resolution=10, debug=False)
 
-randomNodes = nodeManager.getRandomNodes(3)
+randomNodes = nodeManager.getRandomNodes(1)
 randomNodes2 = nodeManager.getRandomNodes(2)
 
-client = ConstClient(1, deliveryRate=1000, debug=True, timeResolutionUnit=timeResolutionUnit)
+client = ConstClient(1, deliveryRate=25, debug=True, timeResolutionUnit=timeResolutionUnit)
 client2 = AIClient(2, delay_between_packets=5, max_outstanding_packets=10, debug=True)
 server = Server(-1)
 
 path = network.createPath(client=client, nodes=randomNodes, server=server)
 path2 = network.createPath(client=client2, nodes=randomNodes2, server=server)
+
+
 
 
 logging.info("path for client1:")
@@ -61,6 +63,6 @@ analyzer = AnalyzerTools()
 # analyzer.createPlotForTimeSteps(client2.stats, 'outStandingPackets')
 # analyzer.createPlotsForTimeSteps(client2.stats, ['outStandingPackets', 'packetsAcked', 'totalPacketsSent', 'totalPacketsAcked', 'ttlMS'])
 # analyzer.createPlotForTimeSteps(client2.stats, 'ttlMS')
-analyzer.createPlotsForTimeSteps(client2.stats, ['outStandingPackets', 'packetsInFlight', 'packetsInQueue', 'ttlMS'])
-analyzer.createPlotsForTimeSteps(client2.stats, ['bottleNeck', 'dataInFlight', 'dataInQueue', 'ttlMS'])
+# analyzer.createPlotsForTimeSteps(client2.stats, ['outStandingPackets', 'packetsInFlight', 'packetsInQueue', 'ttlMS'])
+# analyzer.createPlotsForTimeSteps(client2.stats, ['bottleNeck', 'dataInFlight', 'dataInQueue', 'ttlMS'])
 # 

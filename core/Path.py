@@ -59,7 +59,7 @@ class Path:
 
         for i in range(len(self._nodes) - 1): # ignore server
             node = self._nodes[i]
-            if node.getQueueSize() > 0:
+            if node.getQueueSize() > 1:
                 return node
         return None
 
@@ -81,3 +81,15 @@ class Path:
             num += node.getNumPacketInflight()
 
         return num
+
+    
+    def getNodeStats(self):
+        stats = {}
+        for i in range(len(self._nodes) - 1): # ignore server
+            node = self._nodes[i]
+            stats[node.id] = {
+                'qSzie': node.getQueueSize()
+            }
+        return stats
+
+

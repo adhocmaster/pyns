@@ -49,7 +49,7 @@ class AIClient(Client):
         raise NotImplementedError()
 
     def createPacketsForTimeStep(self, timeStep):
-        pass
+        return [] # it creates it's own events.
 
     def getOutStandingPackets(self):
         return self.outstanding_packets

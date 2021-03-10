@@ -9,7 +9,7 @@ class NodeManager:
 
     def __init__(self):
         self.nodes = {}
-        self.nextNodeId = 0
+        self.nextNodeId = 1
         self.config = Configuration()
         self.name = "NodeManager"
 
