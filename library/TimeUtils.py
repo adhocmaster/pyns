@@ -10,35 +10,55 @@ class TimeUtils:
         return time.time_ns() // 1_000 
 
     @staticmethod
-    def convertToMS(amount, timeResolutionUnit, round=True):
+    def convertToMS(amount, originalUnit, round=True):
         
+        if originalUnit == 's':
+            return amount * 1000
+
+        if originalUnit == 'ms':
+            return amount
+
         if round:
-            if timeResolutionUnit == 'ms':
-                return amount
-            if timeResolutionUnit == 'mcs':
+            if originalUnit == 'mcs':
                 return amount // 1_000
-            if timeResolutionUnit == 'ns':
+            if originalUnit == 'ns':
                 return amount //  1_000_000
         else:
-            if timeResolutionUnit == 'ms':
-                return amount
-            if timeResolutionUnit == 'mcs':
+            if originalUnit == 'mcs':
                 return amount / 1_000
-            if timeResolutionUnit == 'ns':
+            if originalUnit == 'ns':
                 return amount /  1_000_000
+                
+        raise NotImplementedError()
 
     @staticmethod
-    def convertToMCS(amount, timeResolutionUnit, round=True):
+    def convertToMCS(amount, originalUnit, round=True):
         
-        if timeResolutionUnit == 'ms':
-            raise Exception("Cannot convert miliseconds to microseconds due to precision loss.")
+        if originalUnit == 's':
+            return amount * 1000_000
+        if originalUnit == 'ms':
+            return amount * 1000
+        if originalUnit == 'mcs':
+            return amount
+        
         if round:
-            if timeResolutionUnit == 'mcs':
-                return amount
-            if timeResolutionUnit == 'ns':
+            if originalUnit == 'ns':
                 return amount //  1_000
         else:
-            if timeResolutionUnit == 'mcs':
+            if originalUnit == 'mcs':
                 return amount
-            if timeResolutionUnit == 'ns':
+            if originalUnit == 'ns':
                 return amount /  1_000
+
+        raise NotImplementedError()
+
+
+    @staticmethod 
+    def convertTime(amount, originalUnit, toUnit, round=False):
+    
+        if toUnit == 'ms':
+            return TimeUtils.convertToMS(amount, originalUnit, round=round)
+        if toUnit == 'mcs':
+            return TimeUtils.convertToMCS(amount, originalUnit, round=round)
+        
+        raise NotImplementedError()

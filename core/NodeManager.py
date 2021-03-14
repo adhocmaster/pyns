@@ -4,24 +4,29 @@ from core.NodeType import NodeType
 import numpy as np
 from library.Configuration import Configuration
 import logging
+from library.TimeUtils import TimeUtils
 
 class NodeManager:
 
-    def __init__(self):
+    def __init__(self, timeResolutionUnit):
         self.nodes = {}
         self.nextNodeId = 1
+        self.timeResolutionUnit = timeResolutionUnit
         self.config = Configuration()
         self.name = "NodeManager"
 
 
-    def getTransmissionDelayMSFromDeliverRate(self, deliveryRateInS):
+    def getTransmissionDelayPerByteFromDeliverRate(self, deliveryRateInS):
         # may be this should go to node implementation
 
         avgPacketSize = (self.config.get('minPacketSize') + self.config.get('maxPacketSize')) / 2
-        return 1000 / (deliveryRateInS * avgPacketSize) 
+        bytesPerSecond = (deliveryRateInS * avgPacketSize)
+        timeToTransmitAByte = TimeUtils.convertTime(1, 's', self.timeResolutionUnit, round=False) / bytesPerSecond
+        return timeToTransmitAByte
 
 
     def createSimpleNode(self, 
+            timeResolutionUnit,
             maxDeliveryRate=50,
             maxDataInPipe=100000,
             maxQsize = 10000, 
@@ -29,12 +34,12 @@ class NodeManager:
             resolution=1):
 
         
-        transmissionDelayPerByte = self.getTransmissionDelayMSFromDeliverRate(maxDeliveryRate)
+        transmissionDelayPerByte = self.getTransmissionDelayPerByteFromDeliverRate(maxDeliveryRate)
 
-        print(transmissionDelayPerByte)
+        # print(transmissionDelayPerByte)
         
         newNode = SimpleNode(self.nextNodeId, 
-                            maxDeliveryRate=maxDeliveryRate, 
+                            timeResolutionUnit=timeResolutionUnit,
                             transmissionDelayPerByte = transmissionDelayPerByte,
                             maxDataInPipe=maxDataInPipe, 
                             maxQsize = maxQsize, 
@@ -59,6 +64,7 @@ class NodeManager:
         
         for _ in range(n):
             self.createSimpleNode(
+                            timeResolutionUnit=self.timeResolutionUnit,
                             maxDeliveryRate=maxDeliveryRate, 
                             maxDataInPipe=maxDataInPipe, 
                             maxQsize = maxQsize, 
@@ -75,7 +81,7 @@ class NodeManager:
             debug=True, 
             resolution=1):
         
-        transmissionDelayPerByte = self.getTransmissionDelayMSFromDeliverRate(maxDeliveryRate)
+        transmissionDelayPerByte = self.getTransmissionDelayPerByteFromDeliverRate(maxDeliveryRate)
         newNode = HeapNode(self.nextNodeId, 
                             maxDeliveryRate=maxDeliveryRate, 
                             transmissionDelayPerByte = transmissionDelayPerByte,

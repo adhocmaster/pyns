@@ -20,7 +20,7 @@ class Client(ABC):
         self.id = id
         self.nextPacketNumber = 1
         self.type = senderType
-        self.deliveryRate = deliveryRate # KB per second
+        self._deliveryRate = deliveryRate # KB per second or number of packets depending on Client
         self.debug = debug
         self.ackedPackets = {}
         self.minPacketSize = 20 # bytes
@@ -41,13 +41,16 @@ class Client(ABC):
     def __str__(self):
 
         return (
-        f" \n\tid: {self.id} \n"
+        f"\n\tid: {self.id} \n"
         f"\ttype: {self.type} \n"
-        f"\tdeliveryRate: {self.deliveryRate} \n"
+        f"\tdeliveryRate: {self.getDeliveryRate()} \n"
         f"\tnextPacketNumber: {self.nextPacketNumber} \n"
 
         f"\tdebug: {self.debug} \n"
         )
+    
+    def getDeliveryRate(self):
+        return self._deliveryRate
         
     def setSimulator(self, simulator):
         self.simulator = simulator
@@ -83,7 +86,7 @@ class Client(ABC):
 
 
     def getDeliveryRateInMBits(self):
-        return (self.deliveryRate * (self.minPacketSize + self.maxPacketSize) / 2 ) / 131072
+        return (self.getDeliveryRate() * (self.minPacketSize + self.maxPacketSize) / 2 ) / 131072
 
     
     
@@ -110,8 +113,6 @@ class Client(ABC):
     def createPacketsForTimeStep(self, timeStep):
         
         numberOfPackets = self.getNumberOfPacketsToCreateForTimeStep(timeStep)
-        # if self.debug:
-        #     logging.info(f"Sender #{self.id} creating {numberOfPackets} packets at {timeStep}")
         packets = self.createPackets(numberOfPackets, sentAt=timeStep)
         if len(packets) > 0:
             self.lastTimeStep = timeStep

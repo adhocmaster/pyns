@@ -3,27 +3,52 @@ from core.SenderType import SenderType
 import logging
 import math
 import numpy as np
+from library.TimeUtils import TimeUtils
 
 class ConstClient(Client):
 
-    def __init__(self, id, deliveryRate, debug=True,
-    
-            timeResolutionUnit='ms', 
-            resolution=1):
+    def __init__(self, id, deliveryRate,
+            timeResolutionUnit, 
+            resolution=1, 
+            debug=True,):
+        """[summary]
+
+        Args:
+            id ([type]): [description]
+            deliveryRate ([type]): number of packets in S
+            debug (bool, optional): [description]. Defaults to True.
+            timeResolutionUnit (str, optional): [description]. 
+            resolution (int, optional): [description]. Defaults to 1.
+        """
         super().__init__(id, SenderType.Noob, deliveryRate=deliveryRate, debug=debug, resolution=resolution, timeResolutionUnit=timeResolutionUnit)
+
+        self._deliveryRateInTRU = 0
+        self.setDeliveryRate(deliveryRate)
+        self.totalPacketsCreated = 0
+
+
+    def __str__(self):
+        parentStr = super().__str__()
+
+        return (
+            f"{parentStr}"
+            f"\n\tdeliveryRateInTRU: {self._deliveryRateInTRU}"
+            f"\n\ttotalPacketsCreated: {self.totalPacketsCreated}\n"
+        )
+    
+    def setDeliveryRate(self, deliveryRate):
+
+        self._deliveryRate = deliveryRate
+        self._deliveryRateInTRU = self._deliveryRate / TimeUtils.convertTime(1, 's', self.timeResolutionUnit)
+        
 
     def getNumberOfPacketsToCreateForTimeStep(self, timeStep):
 
         # deliveryRate is per second
-        
-        if self.timeResolutionUnit == 'ms':
-            return ((timeStep - self.lastTimeStep) * self.deliveryRate) // 1000
-        if self.timeResolutionUnit == 'mcs':
-            # if timeStep >= 1000:
-            #     print('h')
-            return ((timeStep - self.lastTimeStep) * self.deliveryRate) // 1000_000
-        if self.timeResolutionUnit == 'ns':
-            return ((timeStep - self.lastTimeStep) * self.deliveryRate) // 1000_000_000
+        numPackets = int(round((timeStep - self.lastTimeStep) * self._deliveryRateInTRU, 0))
+        self.totalPacketsCreated += numPackets
+
+        return numPackets
         
 
     def onTimeStepStart(self, timeStep):

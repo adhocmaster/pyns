@@ -13,7 +13,10 @@ class Server(Node):
                     id,
                     debug=True
                 ):
-        super().__init__(id, NodeType.Server, debug=debug)
+        super().__init__(id, NodeType.Server,
+                    timeResolutionUnit=None,
+                    transmissionDelayPerByte=None,
+                    debug=debug)
         self.ttlNoise = 10
         
 
@@ -43,6 +46,8 @@ class Server(Node):
         """
         pass
 
+    def getTimeToFlushQueue(self):
+        NotImplementedError()
 
     def getDataInFlightInKB(self):
         raise NotImplementedError()

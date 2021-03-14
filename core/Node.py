@@ -9,15 +9,15 @@ from library.TimeUtils import TimeUtils
 class Node(ABC):
 
     def __init__(self, id, 
-            nodeType: NodeType=NodeType.SimpleQueue,
-            transmissionDelayPerByte = 0.0001,
+            nodeType,
+            timeResolutionUnit, 
+            transmissionDelayPerByte,
             maxDataInPipe=1000.0,
             avgTTL=20, noiseMax=20, debug=True,
-            timeResolutionUnit=None, 
             resolution=1):
         self.id = id
         self.nodeType = nodeType
-        self.transmissionDelayPerByte = transmissionDelayPerByte # in mili, fraction allowed. For 1 micro, set it to 0.001
+        self.transmissionDelayPerByte = transmissionDelayPerByte # in timeResolutionUnit, fraction allowed. 
         self.maxDataInPipe = maxDataInPipe # in Kilo Bytes
         self.pipe = {} # holds received packets with ttl
         self.queue = None
@@ -103,6 +103,12 @@ class Node(ABC):
                 stats[timeStep] = len(self.pipe[timeStep])
         return stats
 
+    def getTimeToTransmit(self, packetSize):
+        return math.ceil(self.transmissionDelayPerByte * packetSize)
+
+    @abstractmethod
+    def getTimeToFlushQueue(self):
+        NotImplementedError()
 
     @abstractmethod
     def getDataInFlightInKB(self):

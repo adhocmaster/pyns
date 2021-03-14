@@ -3,19 +3,19 @@ from core.Node import Node
 import queue, math, logging
 import numpy as np
 from core.Network import Network
+from library.TimeUtils import TimeUtils
 
 class SimpleNode(Node):
 
     def __init__(
                     self, 
                     id,
-                    maxDeliveryRate,
-                    transmissionDelayPerByte = 0.0001,
+                    timeResolutionUnit, 
+                    transmissionDelayPerByte,
                     maxDataInPipe=100000,
                     maxQsize = 10000, 
                     avgTTL=20, noiseMax=20,
                     debug=True, 
-                    timeResolutionUnit=None, 
                     resolution=1
                 ):
 
@@ -24,27 +24,17 @@ class SimpleNode(Node):
         Raises:
             Exception: [description]
         """
-        if maxDeliveryRate < 1:
-            raise Exception("SimpleNode {self.id}: maxDeliveryRate less than 1 is not supported")
-        self.maxDeliveryRate = math.ceil(maxDeliveryRate) # in packets for simplification. None if no restriction. In seconds
 
         super().__init__(id, NodeType.SimpleQueue,
                         transmissionDelayPerByte=transmissionDelayPerByte,
                         maxDataInPipe=maxDataInPipe, avgTTL=avgTTL, noiseMax=noiseMax, debug=debug, resolution=1,
                         timeResolutionUnit=timeResolutionUnit)
 
-
-
-
         self.maxQsize = maxQsize
         self.queue = queue.Queue(maxsize=maxQsize)
         self.timeStep = 0
         self.lastTimeStep = None
-
-        logging.info(f"SimpleNode {self.id}: Maximum data in pipe is around (maxDeliveryRate * avgPacketSize * avgTTL) = {(self.maxDeliveryRate * 30 * self.avgTTL) / 1000} KB" )
-        logging.info(f"SimpleNode {self.id}: Maximum data in flight can be around (pipe-data + queue-data) = {(self.maxDeliveryRate * 30 * self.avgTTL + self.maxQsize * 30) / 1000} KB" )
-        logging.info(f"SimpleNode {self.id}: Optimal data in flight = {(self.maxDeliveryRate * 30 * self.avgTTL) / 1000} KB" )
-        
+       
     
     def __str__(self):
 
@@ -52,9 +42,13 @@ class SimpleNode(Node):
 
         return (
             f"{nodeProps}"
-            f"\nmaxDeliveryRate: {self.maxDeliveryRate} packets/s"
+            f"\nmaxDeliveryRate: {self.getDeliveryRateInS(30)} packets/s for 30 byte packets"
             f"\nmaxQsize: {self.maxQsize} packets"
         )
+    
+    def getDeliveryRateInS(self, packetSize):
+        timeToTransmitAPacket = self.getTimeToTransmit(packetSize)
+        return TimeUtils.convertTime(1, 's', self.timeResolutionUnit, round=True) // timeToTransmitAPacket
     
     def onIncomingPacket(self, packet, timeStep):
         
@@ -190,6 +184,12 @@ class SimpleNode(Node):
     def getDataInQueueInKB(self):
         return round(self.getDataInQueueInBytes() / 1000, 2)
 
+
+    def getTimeToFlushQueue(self):
+        timeToTransmit = 0
+        for packet in self.queue.queue: # accessing underlying deque, so, items are not consumed
+            timeToTransmit += self.getTimeToTransmit(packet.size)
+        return timeToTransmit
 
     
     def addToQueue(self, packet):

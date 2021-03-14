@@ -122,10 +122,9 @@ class EventSimulator(Simulator):
             if timeStep % self.printStatFreq == 0:
                 logging.info(f"{self.name}: *************************************************** TimeStep {timeStep} ***********************************************")
                 self.logClientStats(timeStep)
-
-
-            for client in self.clients:
-                print(client.path.getNodeStats())
+                
+                for client in self.clients:
+                    print(client.path.getNodeStats())
 
             
 

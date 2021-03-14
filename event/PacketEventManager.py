@@ -54,8 +54,8 @@ class PacketEventManager(ABC):
             
             curNode.channelPacket = packet # while the packet is transmitting, keep it in the channel packet.
 
-            delayMS = curNode.transmissionDelayPerByte * packet.size
-            arriveEventTimeStep = math.ceil(simulator.timeStep + simulator.convertTimeToSimulatorUnit(delayMS, 'ms'))
+            timeToTransmit = curNode.getTimeToTransmit(packet.size)
+            arriveEventTimeStep = simulator.timeStep + timeToTransmit
             curNode.channelBusyUntil = arriveEventTimeStep
             
             if self.debug:
@@ -70,21 +70,6 @@ class PacketEventManager(ABC):
         return []
 
 
-
-    def getTimeToFlushQueue(self, node):
-        # maxDeliveryRate is in seconds
-        numInQ = node.getQueueSize()
-        timeToSendInNS = (numInQ * 1000_000_000) // node.maxDeliveryRate
-        timeToSend = numInQ
-
-        if self.timeResolutionUnit == "ms":
-            timeToSend += (timeToSendInNS // 1000_000)
-        if self.timeResolutionUnit == "mcs":
-            timeToSend += (timeToSendInNS // 1000)
-        if self.timeResolutionUnit == "ns":
-            timeToSend += timeToSendInNS
-        
-        return timeToSend
 
     
     def ArriveNode(self, simulator, packet):
@@ -122,7 +107,7 @@ class PacketEventManager(ABC):
         # delivery rate in num packets
         # assuming queue is always delivering
 
-        timeToStartTransmit = self.getTimeToFlushQueue(curNode)
+        timeToStartTransmit = curNode.getTimeToFlushQueue()
         channelTimeStep = timeStep + timeToStartTransmit + 1 # added one so that, other other pending events at the same timeStep does not wait.
         if curNode.channelBusyUntil > timeStep:
             logging.warn(f"{self.name}: {timeStep}: Channel {curNode.id} is busy until {curNode.channelBusyUntil}")
