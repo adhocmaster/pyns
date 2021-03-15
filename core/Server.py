@@ -20,6 +20,9 @@ class Server(Node):
         self.ttlNoise = 10
         
 
+    def resetStats(self):
+        super().resetStats()
+        
     def onIncomingPacket(self, packet, timeStep):
 
         # the magic.

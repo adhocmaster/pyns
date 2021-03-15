@@ -5,3 +5,4 @@ from core.SenderType import SenderType
 import logging
 
 class AIClient(TCPClient):
+    pass

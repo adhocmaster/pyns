@@ -12,8 +12,10 @@ print( f"current working dir{os.getcwd()}")
 
 import time
 import logging
+import numpy as np
 from core.NodeManager import NodeManager
 from core.Network import Network
+from core.ClientManager import ClientManager
 from core.ConstClient import ConstClient
 from core.AIClient import AIClient
 from core.Server import Server

@@ -34,18 +34,6 @@ class EventSimulator(Simulator):
         client.setSimulator(self)
         client.timeResolutionUnit = self.timeResolutionUnit
         self.clients.append(client)
-
-        client.stats['outStandingPackets'] = []
-        client.stats['dataInFlight'] = []
-        client.stats['packetsInFlight'] = []
-        client.stats['packetsSent'] = []
-        client.stats['packetsAcked'] = []
-        client.stats['totalPacketsSent'] = []
-        client.stats['totalPacketsAcked'] = []
-
-        client.stats["bottleNeck"] = []
-        client.stats['dataInQueue'] = []
-        client.stats['packetsInQueue'] = []
         
         
 
@@ -111,8 +99,10 @@ class EventSimulator(Simulator):
 
         # self.validateEnv()
 
-        totalPacketsSent = 0
-        totalPacketsAcked = 0
+
+        for client in self.clients:
+            client.onStartUp(maxSteps)
+        pass
 
         for timeStep in range(maxSteps):
             self.step()
@@ -123,8 +113,8 @@ class EventSimulator(Simulator):
                 logging.info(f"{self.name}: *************************************************** TimeStep {timeStep} ***********************************************")
                 self.logClientStats(timeStep)
                 
-                for client in self.clients:
-                    print(client.path.getNodeStats())
+                # for client in self.clients:
+                #     print(client.path.getNodeStats())
 
             
 

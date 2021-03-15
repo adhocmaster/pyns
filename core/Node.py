@@ -44,6 +44,15 @@ class Node(ABC):
             f"\ntimeResolutionUnit: {self.timeResolutionUnit}"
             f"\ndebug: {self.debug}"
         )
+
+    @abstractmethod
+    def resetStats(self):
+        self.pipe = {} 
+        self.queue = None
+        self.dataInPipe = 0
+        self.channelBusyUntil = 0 
+        self.channelPacket = None
+        
     
     def isPipeFull(self):
         return self.dataInPipe >= self.maxDataInPipe

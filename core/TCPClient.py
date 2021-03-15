@@ -7,9 +7,9 @@ import logging
 class TCPClient(Client):
 
 
-    def __init__(self, id, delay_between_packets, max_outstanding_packets, debug=True):
+    def __init__(self, id, delay_between_packets, max_outstanding_packets, timeResolutionUnit, debug=True):
 
-        super().__init__(id, SenderType.AI, deliveryRate=0, debug=debug, resolution=None, timeResolutionUnit=None)
+        super().__init__(id, SenderType.AI, deliveryRate=0, debug=debug, resolution=None, timeResolutionUnit=timeResolutionUnit)
         
         self.delay_between_packets = delay_between_packets # in the same resolution as the simulator
         self.max_outstanding_packets = max_outstanding_packets
@@ -24,17 +24,23 @@ class TCPClient(Client):
     
     def __str__(self):
 
+        pathStr = "" if self.path is None else self.path.__str__()
         return (
             f" \n\tid: {self.id}"
-            f" \n\tdelay_between_packets: {self.delay_between_packets} {self.simulator.timeResolutionUnit}"
+            f" \n\tdelay_between_packets: {self.delay_between_packets} {self.timeResolutionUnit}"
             f" \n\tmax_outstanding_packets: {self.max_outstanding_packets}"
-            f" \n\tpath: {self.path.__str()}"
+            f" \n\tpath: {pathStr}"
             f" \n\tdebug: {self.debug}"
         )
     
     def setSimulator(self, simulator):
         self.simulator = simulator
         self.timeResolutionUnit = simulator.timeResolutionUnit
+
+    def resetStats(self):
+        super().resetStats()
+        self.outstanding_packets = 0
+        self.lastTimeStep = 0
 
 
 
@@ -88,6 +94,10 @@ class TCPClient(Client):
         
         # self.stats['outStandingPackets'] = self.outstanding_packets
         
+            
+    def onStartUp(self, maxSteps):
+        super().onStartUp(maxSteps)
+
             
     def onShutDown(self, maxSteps):
         super().onShutDown(maxSteps)

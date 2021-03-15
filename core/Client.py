@@ -12,9 +12,12 @@ from library.TimeUtils import TimeUtils
 
 class Client(ABC):
 
-    def __init__(self, id, senderType: SenderType, deliveryRate = 0.1, debug=True,
+    def __init__(self, id, 
+            senderType: SenderType, 
+            timeResolutionUnit,
+            deliveryRate = 0.1, 
+            debug=True,
     
-            timeResolutionUnit='ms', 
             resolution=1):
         self.lock = threading.RLock()
         self.id = id
@@ -35,7 +38,7 @@ class Client(ABC):
         self.simulator = None
         self.stats = {}
         self.stats['packetsAcked'] = []
-        self.stats['ttlMS'] = []
+        self.stats['rttMS'] = []
 
     
     def __str__(self):
@@ -48,6 +51,31 @@ class Client(ABC):
 
         f"\tdebug: {self.debug} \n"
         )
+
+    
+    @abstractmethod
+    def resetStats(self):
+        self.nextPacketNumber = 1
+        self.ackedPackets = {}
+        self.lastTimeStep = None # last timeStep when some packets were created
+        self.nextNode = None
+
+        self.stats = {}
+        self.stats['packetsAcked'] = []
+        self.stats['rttMS'] = []
+
+        self.stats['outStandingPackets'] = []
+        self.stats['dataInFlight'] = []
+        self.stats['packetsInFlight'] = []
+        self.stats['packetsSent'] = []
+        self.stats['packetsAcked'] = []
+        self.stats['totalPacketsSent'] = []
+        self.stats['totalPacketsAcked'] = []
+
+        self.stats["bottleNeck"] = []
+        self.stats['dataInQueue'] = []
+        self.stats['packetsInQueue'] = []
+
     
     def getDeliveryRate(self):
         return self._deliveryRate
@@ -193,11 +221,17 @@ class Client(ABC):
         # self.ackedPackets[packet.getPacketNumber()] = packet
         pass
 
+    
+    @abstractmethod
+    def onStartUp(self, maxStep):
+        self.resetStats()
+
+
     @abstractmethod
     def onShutDown(self, maxSteps):
         # calculate more stats
         self.totalPacketsAcked = 0
-        prevTTL = 0
+        prevRTT = 0
         for ts  in range(maxSteps):
             numPacketsInTS = len(self.ackedPackets.get(ts, []))
             self.stats['packetsAcked'].append(numPacketsInTS)
@@ -206,12 +240,12 @@ class Client(ABC):
 
             # ttl values
             if numPacketsInTS > 0:
-                prevTTL = self.getAvgTTLMS(self.ackedPackets[ts])
-            self.stats['ttlMS'].append(prevTTL)
+                prevRTT = self.getAvgRTTMS(self.ackedPackets[ts])
+            self.stats['rttMS'].append(prevRTT)
 
         pass
 
-    def getAvgTTLMS(self, packets):
+    def getAvgRTTMS(self, packets):
         ttl = 0
         for packet in packets:
             ttl += packet.ttl

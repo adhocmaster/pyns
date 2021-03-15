@@ -46,6 +46,12 @@ class SimpleNode(Node):
             f"\nmaxQsize: {self.maxQsize} packets"
         )
     
+    def resetStats(self):
+        super().resetStats()
+        self.queue = queue.Queue(maxsize=self.maxQsize)
+        self.timeStep = 0
+        self.lastTimeStep = None
+
     def getDeliveryRateInS(self, packetSize):
         timeToTransmitAPacket = self.getTimeToTransmit(packetSize)
         return TimeUtils.convertTime(1, 's', self.timeResolutionUnit, round=True) // timeToTransmitAPacket

@@ -16,6 +16,12 @@ class NodeManager:
         self.name = "NodeManager"
 
 
+    def reset(self):
+
+        for node in self.nodes.values():
+            node.resetStats()
+
+
     def getTransmissionDelayPerByteFromDeliverRate(self, deliveryRateInS):
         # may be this should go to node implementation
 
@@ -26,7 +32,6 @@ class NodeManager:
 
 
     def createSimpleNode(self, 
-            timeResolutionUnit,
             maxDeliveryRate=50,
             maxDataInPipe=100000,
             maxQsize = 10000, 
@@ -35,11 +40,9 @@ class NodeManager:
 
         
         transmissionDelayPerByte = self.getTransmissionDelayPerByteFromDeliverRate(maxDeliveryRate)
-
-        # print(transmissionDelayPerByte)
         
         newNode = SimpleNode(self.nextNodeId, 
-                            timeResolutionUnit=timeResolutionUnit,
+                            timeResolutionUnit=self.timeResolutionUnit,
                             transmissionDelayPerByte = transmissionDelayPerByte,
                             maxDataInPipe=maxDataInPipe, 
                             maxQsize = maxQsize, 
@@ -54,7 +57,6 @@ class NodeManager:
     
     def createSimpleNodes(self, n, 
             maxDeliveryRate=50,
-            transmissionDelayPerByte = 0.0001,
             maxDataInPipe=100000,
             maxQsize = 10000, 
             debug=True, 
@@ -64,7 +66,6 @@ class NodeManager:
         
         for _ in range(n):
             self.createSimpleNode(
-                            timeResolutionUnit=self.timeResolutionUnit,
                             maxDeliveryRate=maxDeliveryRate, 
                             maxDataInPipe=maxDataInPipe, 
                             maxQsize = maxQsize, 
