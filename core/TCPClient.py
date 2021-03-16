@@ -2,6 +2,7 @@ from core.Client import Client
 from event.PacketEvent import PacketEvent
 from event.EventTypes import EventTypes
 from core.SenderType import SenderType
+from library.TimeUtils import TimeUtils
 import logging
 
 class TCPClient(Client):
@@ -9,7 +10,7 @@ class TCPClient(Client):
 
     def __init__(self, id, delay_between_packets, max_outstanding_packets, timeResolutionUnit, debug=True):
 
-        super().__init__(id, SenderType.AI, deliveryRate=0, debug=debug, resolution=None, timeResolutionUnit=timeResolutionUnit)
+        super().__init__(id, SenderType.TCP, deliveryRate=0, debug=debug, resolution=None, timeResolutionUnit=timeResolutionUnit)
         
         self.delay_between_packets = delay_between_packets # in the same resolution as the simulator
         self.max_outstanding_packets = max_outstanding_packets
@@ -20,6 +21,7 @@ class TCPClient(Client):
         self.lastTimeStep = 0
 
         self.stats['outStandingPackets'] = []
+        self.name = f"TCPClient {self.id}"
     
     
     def __str__(self):
@@ -42,6 +44,9 @@ class TCPClient(Client):
         self.outstanding_packets = 0
         self.lastTimeStep = 0
 
+
+    def getMaxDeliveryRatePerS(self):
+        return self.delay_between_packets * TimeUtils.convertTime(1, 's', self.timeResolutionUnit)
 
 
     def onTimeStepStart(self, timeStep):
@@ -68,7 +73,7 @@ class TCPClient(Client):
 
         self.outstanding_packets -= 1
         if self.debug:
-            logging.debug(f"AIClient {self.id}: outstanding packets: {self.outstanding_packets}")
+            logging.debug(f"{self.name}: outstanding packets: {self.outstanding_packets}")
         
 
         # self.ackedPackets[packet.getPacketNumber()] = packet
@@ -89,8 +94,8 @@ class TCPClient(Client):
             self.outstanding_packets += 1
 
             if self.debug:
-                logging.debug(f"AIClient {self.id}: created packet with id {packet.id}")
-                logging.debug(f"AIClient {self.id}: outstanding packets: {self.outstanding_packets}")
+                logging.debug(f"{self.name}: created packet with id {packet.id}")
+                logging.debug(f"{self.name}: outstanding packets: {self.outstanding_packets}")
         
         # self.stats['outStandingPackets'] = self.outstanding_packets
         

@@ -6,3 +6,4 @@ class SenderType(Enum):
     Tahoe = "Tahoe"
     BBR = "BBR"
     AI = 'AI'
+    TCP = 'TCP'
