@@ -32,6 +32,8 @@ class Node(ABC):
         self.timeResolutionUnit = timeResolutionUnit
         self.channelBusyUntil = 0 
         self.channelPacket = None
+
+        self.stats = {}
     
 
     def __str__(self):
@@ -52,6 +54,7 @@ class Node(ABC):
         self.dataInPipe = 0
         self.channelBusyUntil = 0 
         self.channelPacket = None
+        self.stats = {}
         
     
     def isPipeFull(self):
@@ -154,25 +157,34 @@ class Node(ABC):
         pass
 
     
-    # @abstractmethod
-    # def onTimeStepEnd(self, timeStep):
-    #     """To be called at the end of a timeStep
+    @abstractmethod
+    def onTimeStepEnd(self, timeStep):
+        """To be called at the end of a timeStep
 
-    #     Args:
-    #         timeStep ([type]): [description]
-    #     """
-    #     pass
+        Args:
+            timeStep ([type]): [description]
+        """
+        pass
 
 
-    # @abstractmethod
-    # def onTimeStepStart(self, timeStep):
-    #     """Must be called at the beginning of a timeStep
+    @abstractmethod
+    def onTimeStepStart(self, timeStep):
+        """Must be called at the beginning of a timeStep
 
-    #     Args:
-    #         timeStep ([type]): [description]
-    #     """
-    #     pass
+        Args:
+            timeStep ([type]): [description]
+        """
+        pass
 
+    @abstractmethod
+    def onStartUp(self, maxStep):
+        self.resetStats()
+
+
+    @abstractmethod
+    def onShutDown(self, maxSteps):
+        # calculate more stats
+        pass
 
     @abstractmethod
     def getQueueSize(self):

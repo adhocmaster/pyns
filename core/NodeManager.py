@@ -131,3 +131,6 @@ class NodeManager:
         for node in self.nodes.values():
             node.stop()
     
+    def getNodes(self):
+        return self.nodes.values()
+        

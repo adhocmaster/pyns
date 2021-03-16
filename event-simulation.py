@@ -50,7 +50,7 @@ path2 = network.createPath(client=client2, nodes=randomNodes2, server=server2)
 logging.info("path for client1:" + str([node.id for node in path.getNodesWithServer()]))
 logging.info("path for client2:" + str([node.id for node in path2.getNodesWithServer()]))
 
-simulator = EventSimulator(timeResolutionUnit=timeResolutionUnit, debug=True)
+simulator = EventSimulator(timeResolutionUnit=timeResolutionUnit, nodeManager=nodeManager, debug=True)
 
 simulator.addClient(client)
 # simulator.addClient(client2)
@@ -62,7 +62,7 @@ logging.info(simulator)
 # while TimeUtils.getMS() < endAt:
 #     simulator.step()
 
-maxSteps = 5000 # equivalent to maxStep timeResolution unit 50ms
+maxSteps = 10000 # equivalent to maxStep timeResolution unit 50ms
 simulator.run(maxSteps)
 print(simulator.timeStep)
 
@@ -79,5 +79,9 @@ analyzer = AnalyzerTools()
 # 
 
 # What's important in client view?
-analyzer.createPlotsForTimeSteps(client.stats, ['outStandingPackets', 'packetsAcked', 'totalPacketsSent', 'totalPacketsAcked', 'rttMS'])
-analyzer.createPlotsForTimeSteps(client.stats, ['bottleNeck', 'dataInFlight', 'dataInQueue', 'rttMS'])
+# analyzer.createPlotsForTimeSteps(client.stats, ['outStandingPackets', 'packetsAcked', 'totalPacketsSent', 'totalPacketsAcked', 'rttMS'])
+# analyzer.createPlotsForTimeSteps(client.stats, ['bottleNeck', 'dataInFlight', 'dataInQueue', 'rttMS'])
+# analyzer.createPlotsForTimeSteps(randomNodes[0].stats, ['qSize', 'queued', 'dequeued', 'deliveryRateInS', 'utilization'])
+analyzer.createPlotsForTimeSteps(randomNodes[0].stats, ['qSize', 'queued', 'dequeued', 'utilization'], title="Node 0 stats")
+# print(randomNodes[0].stats)
+# analyzer.createPlotsForTimeSteps(randomNodes[0].stats, ['qSize', 'queued', 'dequeued'])

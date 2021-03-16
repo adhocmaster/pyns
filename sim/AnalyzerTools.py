@@ -92,7 +92,7 @@ class AnalyzerTools:
         plt.legend()
         plt.show()
 
-    def createPlotsForTimeSteps(self, statsDic, columnNames, figsize=(20,10)):
+    def createPlotsForTimeSteps(self, statsDic, columnNames, figsize=(20,10), title='Stats'):
         plt.figure(figsize=figsize)
         timeSteps = list(range(len(statsDic[columnNames[0]])))
 
@@ -103,7 +103,7 @@ class AnalyzerTools:
                 raise Exception("Not all the columns have same number of items")
             plt.plot(timeSteps, statsDic[columnName], label=columnName)
 
-        plt.title(f"Stats")
+        plt.title(title)
         plt.xlabel("Time Step")
         plt.ylabel(f"values")
         plt.legend()

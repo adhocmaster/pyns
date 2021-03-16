@@ -4,6 +4,7 @@ import queue, math, logging
 import numpy as np
 from core.Network import Network
 from library.TimeUtils import TimeUtils
+import pandas
 
 class SimpleNode(Node):
 
@@ -34,6 +35,14 @@ class SimpleNode(Node):
         self.queue = queue.Queue(maxsize=maxQsize)
         self.timeStep = 0
         self.lastTimeStep = None
+        self.queuedInTimeStep = None
+        self.dequeuedInTimeStep = None
+        self.stats['qSize'] = []
+        self.stats['queued'] = []
+        self.stats['dequeued'] = []
+        self.stats['deliveryRateInS'] = []
+        self.stats['utilization'] = []
+        self.name = f"SimpleNode {self.id}"
        
     
     def __str__(self):
@@ -51,6 +60,13 @@ class SimpleNode(Node):
         self.queue = queue.Queue(maxsize=self.maxQsize)
         self.timeStep = 0
         self.lastTimeStep = None
+        self.queuedInTimeStep = None
+        self.dequeuedInTimeStep = None
+        self.stats['qSize'] = []
+        self.stats['queued'] = []
+        self.stats['dequeued'] = []
+        self.stats['deliveryRateInS'] = []
+        self.stats['utilization'] = []
 
     def getDeliveryRateInS(self, packetSize):
         timeToTransmitAPacket = self.getTimeToTransmit(packetSize)
@@ -125,6 +141,62 @@ class SimpleNode(Node):
         for packet in flushedPackets:
             packet.nextNode.onIncomingPacket(packet, timeStep)
         
+
+    def onTimeStepEnd(self, timeStep):
+        """To be called at the end of a timeStep
+
+        Args:
+            timeStep ([type]): [description]
+        """
+        self.stats['qSize'].append(self.getQueueSize())
+        self.stats['queued'].append(self.queuedInTimeStep)
+        self.stats['dequeued'].append(self.dequeuedInTimeStep)
+
+        # self.stats['deliveryRateInS'] = []
+        # self.stats['utilization'] = []
+        pass
+
+    def onTimeStepStart(self, timeStep):
+        """Must be called at the beginning of a timeStep
+
+        Args:
+            timeStep ([type]): [description]
+        """
+        self.queuedInTimeStep = 0
+        self.dequeuedInTimeStep = 0
+        
+        pass
+
+    def onStartUp(self, maxStep):
+        self.resetStats()
+
+
+    def onShutDown(self, maxSteps, config):
+        # calculate more stats
+        if self.debug:
+            logging.info(f"{self.name}: shutting down")
+        
+        self.updateDeliveryRateAndUtilization(maxSteps, config)
+        if self.debug:
+            logging.info(f"{self.name}: shut down")
+        pass
+
+    def updateDeliveryRateAndUtilization(self, maxSteps, config):
+        
+        forSec = TimeUtils.convertTime(1, 's', self.timeResolutionUnit)
+        avgPacketSize = (config.get("maxPacketSize") + config.get("minPacketSize")) / 2
+        averageOptimalDeliveryRate = self.getDeliveryRateInS(avgPacketSize)
+        
+        windowSize = self.getTimeToTransmit(config.get("maxPacketSize")) * 20
+        series = pandas.Series(self.stats['dequeued'])
+        self.stats['dequeued-rolling'] = series.rolling(window=windowSize, center=True, min_periods=1).mean()
+        
+        for timeStep in range(maxSteps):
+            
+            packetsDequeued = self.stats['dequeued-rolling'][timeStep]
+            deliveryRateInS = packetsDequeued * forSec
+            self.stats['deliveryRateInS'].append(deliveryRateInS)
+            self.stats['utilization'].append(deliveryRateInS / averageOptimalDeliveryRate)
 
 
     def tryDeliveringFromQueue(self, timeStep, limit=None):
@@ -202,14 +274,18 @@ class SimpleNode(Node):
 
         try:
             self.queue.put(packet, block=False)
+            self.queuedInTimeStep += 1
         except queue.Full:
             # packet dropped
             logging.warn(f"SimpleNode {self.id}: packet {packet.id} dropped")
             pass
+
     
     def getFromQueue(self):
         try:
-            return self.queue.get(block=False)
+            packet = self.queue.get(block=False)
+            self.dequeuedInTimeStep += 1
+            return packet
         except queue.Empty:
             return None
 

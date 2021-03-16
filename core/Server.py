@@ -42,12 +42,7 @@ class Server(Node):
         pass
 
     def onTimeStep(self, timeStep):
-        """To be called at the end of a timeStep
-
-        Args:
-            timeStep ([type]): [description]
-        """
-        pass
+        raise NotImplementedError()
 
     def getTimeToFlushQueue(self):
         NotImplementedError()
@@ -62,6 +57,19 @@ class Server(Node):
         raise NotImplementedError()
 
     
+    def onTimeStepEnd(self, timeStep):
+        raise NotImplementedError()
+
+
+    def onTimeStepStart(self, timeStep):
+        raise NotImplementedError()
+
+    def onStartUp(self, maxStep):
+        raise NotImplementedError()
+
+
+    def onShutDown(self, maxSteps):
+        raise NotImplementedError()
 
     def getQueueSize(self):
         raise NotImplementedError()

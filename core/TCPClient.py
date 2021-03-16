@@ -105,8 +105,12 @@ class TCPClient(Client):
 
             
     def onShutDown(self, maxSteps):
+        if self.debug:
+            logging.info(f"{self.name}: shutting down")
         super().onShutDown(maxSteps)
 
         # total sent packets = outstanding + acked
         for ts  in range(maxSteps):
             self.stats['totalPacketsSent'].append(self.stats['totalPacketsAcked'][ts] + self.stats['outStandingPackets'][ts])
+        if self.debug:
+            logging.info(f"{self.name}: shut down")

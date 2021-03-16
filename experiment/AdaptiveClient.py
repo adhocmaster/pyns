@@ -50,12 +50,22 @@ class AdaptiveClient(TCPClient):
     def getCurrentDeliveryRatePerS(self):
 
         numPackets = self.bandWidthQueue.qsize()
-        if numPackets == 0:
+        if numPackets < 2:
             return 0
 
         firstAckedAt = self.bandWidthQueue.queue[0].ackAt
         lastAckedAt = self.bandWidthQueue.queue[-1].ackAt
         return (numPackets * TimeUtils.convertTime(1, 's', self.timeResolutionUnit)) / (lastAckedAt - firstAckedAt)
+    
+    def getCurrentDeliveryRate(self):
+
+        numPackets = self.bandWidthQueue.qsize()
+        if numPackets < 2:
+            return 0
+
+        firstAckedAt = self.bandWidthQueue.queue[0].ackAt
+        lastAckedAt = self.bandWidthQueue.queue[-1].ackAt
+        return numPackets / (lastAckedAt - firstAckedAt)
 
     def getThroughput(self):
         return self.getCurrentDeliveryRatePerS() / self.getMaxDeliveryRatePerS()
@@ -72,8 +82,8 @@ class AdaptiveClient(TCPClient):
         return self.outstanding_packets / self.getAvgRTTWindow()
 
     def getPower(self):
-        # return self.getCurrentDeliveryRatePerS() / (self.getAvgRTTWindow() * TimeUtils.convertTime(1, 's', self.timeResolutionUnit))
-        return self.getBandWidth() / self.getAvgRTTWindow()
+        return self.getCurrentDeliveryRate() / self.getAvgRTTWindow()
+        # return self.getBandWidth() / self.getAvgRTTWindow()
 
     
     def onACK(self, packet, timeStep=None):

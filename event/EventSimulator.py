@@ -1,18 +1,20 @@
 import heapq
 import time
 from library.TimeUtils import TimeUtils
+from library.Configuration import Configuration
 import logging
 from event.PacketEventManager import PacketEventManager
 import pprint
 from sim.Simulator import Simulator
 class EventSimulator(Simulator):
 
-    def __init__(self, timeResolutionUnit, startTimeStep=0, future_events=None, debug=False, printStatFreq=1000):
+    def __init__(self, timeResolutionUnit, nodeManager, startTimeStep=0, future_events=None, debug=False, printStatFreq=1000):
         
         super().__init__()
 
         self.future_events = future_events or []
         self.timeResolutionUnit = timeResolutionUnit
+        self.nodeManager = nodeManager
         self.name="EventSimulator"
         self.eventManager = PacketEventManager(timeResolutionUnit, debug=debug)
         self.clients = []
@@ -20,6 +22,7 @@ class EventSimulator(Simulator):
         self.timeStep = startTimeStep
         self.printStatFreq = printStatFreq # print every printStatFreq time step
         self.debug = debug
+        self.config = Configuration()
         
 
     def __str__(self):
@@ -99,6 +102,8 @@ class EventSimulator(Simulator):
 
         # self.validateEnv()
 
+        for node in self.nodeManager.getNodes():
+            node.onStartUp(maxSteps)
 
         for client in self.clients:
             client.onStartUp(maxSteps)
@@ -121,6 +126,8 @@ class EventSimulator(Simulator):
         for client in self.clients:
             client.onShutDown(maxSteps)
         pass
+        for node in self.nodeManager.getNodes():
+            node.onShutDown(maxSteps, self.config)
 
 
     def logClientStats(self, timeStep):
@@ -157,10 +164,11 @@ class EventSimulator(Simulator):
     def step(self):
         """Performs one step of the event simulator."""
         
-
         # timeStep = self.getCurrentTime()
         timeStep = self.timeStep
 
+        for node in self.nodeManager.getNodes():
+            node.onTimeStepStart(timeStep)
 
 
         while self.hasDueEvent(timeStep):
@@ -182,6 +190,9 @@ class EventSimulator(Simulator):
         # 1. let clients create events first
         self.notifyClients(timeStep)
         self.createClientEvents(timeStep)
+
+        for node in self.nodeManager.getNodes():
+            node.onTimeStepEnd(timeStep)
 
         self.timeStep += 1
 
