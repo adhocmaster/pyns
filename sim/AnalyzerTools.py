@@ -110,8 +110,37 @@ class AnalyzerTools:
         plt.show()
 
 
+    def createBinnedChart(self, nodes, columnNames):
+        numberOfItems = len(nodes[0].binnedStats[columnNames[0]])
+        x = np.arange(numberOfItems)
+        width=0.1
+        for col in columnNames:
+            for node in nodes:
+                plt.bar(x, node.binnedStats[col], width=width, label=f"{col}-{node.id}")
+                x = x + width
 
-    def summarizeNodeStats(self, nodes, columnNames, binSize=100, method=max):
+        plt.legend(loc='best')
+        plt.show()
+
+    def createBinnedChartForNodeVsClient(self, nodes, nodeCols, clients, clientCols):
+        numberOfItems = len(nodes[0].binnedStats[nodeCols[0]])
+        x = np.arange(numberOfItems)
+        width=0.1
+        for col in nodeCols:
+            for node in nodes:
+                plt.bar(x, node.binnedStats[col], width=width, label=f"{col}-{node.name}")
+                x = x + width
+
+        x = np.arange(numberOfItems)
+        for col in clientCols:
+            for client in clients:
+                plt.plot(x, client.binnedStats[col], label=f"{col}-{client.name}")
+
+        plt.legend(loc='best')
+        plt.show()
+
+
+    def binStats(self, nodes, columnNames, binSize=100, method=max):
         """Creates binnedStats property in nodes
 
         Args:
@@ -142,6 +171,8 @@ class AnalyzerTools:
             binStart = binEndBefore
             binEndBefore += binSize
         
+    
+    # def summarizeClientStats(self, clients, columnNames, binSize=100, method=max):
 
 
 
