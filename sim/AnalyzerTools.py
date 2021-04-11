@@ -111,4 +111,41 @@ class AnalyzerTools:
 
 
 
+    def summarizeNodeStats(self, nodes, columnNames, binSize=100, method=max):
+        """Creates binnedStats property in nodes
+
+        Args:
+            nodes ([type]): [description]
+        """
+
+        # init summary properties
+        for node in nodes:
+            print(node)
+            node.binnedStats = {}
+            for col in columnNames:
+                node.binnedStats[col] = []
+            
+
+
+        binStart = 0
+        binEndBefore = binStart + binSize
+        numberOfItems = len(nodes[0].stats[columnNames[0]])
+
+        while binEndBefore <= numberOfItems:
+            for col in columnNames:
+                for node in nodes:
+                    colData = node.stats[col]
+                    data = colData[binStart : binEndBefore]
+                    agg = list(map(method, (data,)))[0]
+                    node.binnedStats[col].append(agg)
+            
+            binStart = binEndBefore
+            binEndBefore += binSize
+        
+
+
+
+
+
+
 

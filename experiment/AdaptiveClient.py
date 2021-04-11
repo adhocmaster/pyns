@@ -82,8 +82,8 @@ class AdaptiveClient(TCPClient):
         return self.outstanding_packets / self.getAvgRTTWindow()
 
     def getPower(self):
-        return self.getCurrentDeliveryRate() / self.getAvgRTTWindow()
-        # return self.getBandWidth() / self.getAvgRTTWindow()
+        # return self.getCurrentDeliveryRate() / self.getAvgRTTWindow()
+        return self.getBandWidth() / self.getAvgRTTWindow()
 
     
     def onACK(self, packet, timeStep=None):

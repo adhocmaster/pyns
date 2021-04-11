@@ -9,7 +9,8 @@ class Path:
         self.client = client
         self._nodes = []
         if nodes is not None:
-            self._nodes = nodes
+            for node in nodes:
+                self._nodes.append(node)
         self.server = server
         self._nodes.append(self.server)
 

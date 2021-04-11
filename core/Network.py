@@ -58,9 +58,9 @@ class Network:
         client.nextNode = nodes[0]
         client.path = path
 
-        for node1 in nodes:
-            for node2 in nodes:
-                if node1.id != node2.id:
-                    self.createChannels(node1, node2)
+        # for node1 in nodes:
+        #     for node2 in nodes:
+        #         if node1.id != node2.id:
+        #             self.createChannels(node1, node2)
         return path
 
