@@ -1,6 +1,7 @@
 from core.TCPClient import TCPClient
 from experiment.RTTAdaptiveClient import RTTAdaptiveClient
 from experiment.PowerAdaptiveClient import PowerAdaptiveClient
+from experiment.PowerTWClient import PowerTWClient
 from library.Configuration import Configuration
 import logging
 from library.TimeUtils import TimeUtils
@@ -57,6 +58,28 @@ class ClientManager:
         delay_between_packets = self.getDelayBetweenPacketsFromDeliveryRatePerS(deliveryRatePerS)
         client = PowerAdaptiveClient(
                             self.nextClientId, 
+                            rttWindowSize=rttWindowSize,
+                            bandWidthWindowSize=bandWidthWindowSize,
+                            delay_between_packets=delay_between_packets, 
+                            max_outstanding_packets=max_outstanding_packets, 
+                            timeResolutionUnit=self.timeResolutionUnit,
+                            debug=self.debug
+                            ) 
+        self.clients[self.nextClientId] = client
+        self.nextClientId += 1
+
+        if self.debug:
+            logging.info(f"{self.name}: created node {client}")
+
+        return client
+
+    
+    def createPowerTWClient(self, pollCycle, rttWindowSize, bandWidthWindowSize, deliveryRatePerS, max_outstanding_packets):
+
+        delay_between_packets = self.getDelayBetweenPacketsFromDeliveryRatePerS(deliveryRatePerS)
+        client = PowerTWClient(
+                            self.nextClientId, 
+                            pollCycle = pollCycle,
                             rttWindowSize=rttWindowSize,
                             bandWidthWindowSize=bandWidthWindowSize,
                             delay_between_packets=delay_between_packets, 

@@ -26,68 +26,46 @@ config = Configuration()
 timeResolutionUnit = config.get('timeResolutionUnit')
 network = Network.get()
 nodeManager = NodeManager(timeResolutionUnit)
-nodeManager.createSimpleNodes(n=4, resolution=10, maxDeliveryRate=5000, debug=True)
-# nodeManager.createHeapNodes(n=10, resolution=10, debug=False)
-
-randomNodes = nodeManager.getRandomNodes(2)
-randomNodes2 = nodeManager.getRandomNodes(2)
-
 clientManager = ClientManager(timeResolutionUnit, debug=True)
-clients = clientManager.createTCPClients(2, deliveryRatePerS=10000, max_outstanding_packets=10)
-client = clients[0]
-client2 = clients[1]
-# client = ConstClient(1, deliveryRate=250, debug=True, timeResolutionUnit=timeResolutionUnit)
-# client = TCPClient(1, delay_between_packets=50, max_outstanding_packets=10, debug=True) # delivery rate is 2k packets per sec for 500
-# client2 = TCPClient(2, delay_between_packets=500, max_outstanding_packets=10, debug=True) # delivery rate is 2k packets per sec for 500
-
+client = clientManager.createTCPClient(deliveryRatePerS=1500, max_outstanding_packets=100)
+client2 = clientManager.createPowerTWClient(pollCycle=2,rttWindowSize=5, bandWidthWindowSize=5, deliveryRatePerS=3000, max_outstanding_packets=100)
+nodes = [
+    nodeManager.createSimpleNode(maxDeliveryRate=10000, debug=False),
+    nodeManager.createSimpleNode(maxDeliveryRate=2000, debug=False),
+    nodeManager.createSimpleNode(maxDeliveryRate=5000, debug=False),
+    nodeManager.createSimpleNode(maxDeliveryRate=3000, debug=False)
+]
+nodes2 = [
+    nodeManager.createSimpleNode(maxDeliveryRate=1500, debug=False),
+    nodes[1],
+    nodeManager.createSimpleNode(maxDeliveryRate=5000, debug=False)
+]
 
 server = Server(-1)
 server2 = Server(-2)
 
-path = network.createPath(client=client, nodes=randomNodes, server=server)
-path2 = network.createPath(client=client2, nodes=randomNodes2, server=server2)
+path = network.createPath(client=client, nodes=nodes, server=server)
+path2 = network.createPath(client=client2, nodes=nodes2, server=server2)
+
 
 logging.info("path for client1:" + str([node.id for node in path.getNodesWithServer()]))
 logging.info("path for client2:" + str([node.id for node in path2.getNodesWithServer()]))
 
-simulator = EventSimulator(timeResolutionUnit=timeResolutionUnit, nodeManager=nodeManager, debug=True)
-
+nodeManager.reset()
+simulator = EventSimulator(timeResolutionUnit=timeResolutionUnit, nodeManager=nodeManager, debug=False)
 simulator.addClient(client)
-# simulator.addClient(client2)
+simulator.addClient(client2)
 
-logging.info(simulator)
-
-# endAt = TimeUtils.getMS() + 1000
-
-# while TimeUtils.getMS() < endAt:
-#     simulator.step()
-
-maxSteps = 10000 # equivalent to maxStep timeResolution unit 50ms
+maxSteps = 5000000 # equivalent to maxStep timeResolution unit
 simulator.run(maxSteps)
-print(simulator.timeStep)
-
 
 # visualization for client 2
 
 analyzer = AnalyzerTools()
-
-# analyzer.createPlotForTimeSteps(client.stats, 'outStandingPackets')
-# analyzer.createPlotsForTimeSteps(client.stats, ['outStandingPackets', 'packetsAcked', 'totalPacketsSent', 'totalPacketsAcked', 'rttMS'])
-# # analyzer.createPlotForTimeSteps(client.stats, 'rttMS')
-# analyzer.createPlotsForTimeSteps(client.stats, ['outStandingPackets', 'packetsInFlight', 'packetsInQueue', 'rttMS'])
-# analyzer.createPlotsForTimeSteps(client.stats, ['bottleNeck', 'dataInFlight', 'dataInQueue', 'rttMS'])
-# 
-
-# What's important in client view?
-# analyzer.createPlotsForTimeSteps(client.stats, ['outStandingPackets', 'packetsAcked', 'totalPacketsSent', 'totalPacketsAcked', 'rttMS'])
-# analyzer.createPlotsForTimeSteps(client.stats, ['bottleNeck', 'dataInFlight', 'dataInQueue', 'rttMS'])
-# analyzer.createPlotsForTimeSteps(randomNodes[0].stats, ['qSize', 'queued', 'dequeued', 'deliveryRateInS', 'utilization'])
-# analyzer.createPlotsForTimeSteps(randomNodes[0].stats, ['qSize', 'queued', 'dequeued', 'utilization'], title="Node 0 stats")
-# print(randomNodes[0].stats)
-# analyzer.createPlotsForTimeSteps(randomNodes[0].stats, ['qSize', 'queued', 'dequeued'])
-analyzer.binStats(randomNodes, columnNames= ['qSize', 'utilization'], binSize=500, method=np.max)
-# analyzer.createPlotsForTimeSteps(randomNodes[0].binnedStats, ['qSize', 'utilization'], title="Node 0 stats")
-# analyzer.createBinnedChart(randomNodes, ['qSize'])
-analyzer.binStats([client], columnNames= ['outStandingPackets', 'rttMS'], binSize=500, method=np.median)
-# analyzer.createBinnedChart([client], ['rttMS'])
-analyzer.createBinnedChartForNodeVsClient(randomNodes, ['qSize'], [client], ['outStandingPackets', 'rttMS'])
+binSize = 500
+clients = [client, client2]
+analyzer.binStats(nodes, columnNames= ['qSize', 'utilization'], binSize=binSize, method=np.max)
+analyzer.binStats(nodes2, columnNames= ['qSize', 'utilization'], binSize=binSize, method=np.max)
+analyzer.binStats(clients, columnNames= ['outStandingPackets', 'rttMS', 'actualRttMS'], binSize=binSize, method=np.median)
+analyzer.createBinnedChartForNodeVsClient(nodes2, ['qSize'], [client2], ['outStandingPackets', 'rttMS', 'actualRttMS'], start=0, end=4000)
+analyzer.createPacketVsRTT(client2)

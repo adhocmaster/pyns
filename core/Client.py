@@ -39,6 +39,7 @@ class Client(ABC):
         self.stats = {}
         self.stats['packetsAcked'] = []
         self.stats['rttMS'] = []
+        self.stats['actualRttMS'] = []
 
     
     def __str__(self):
@@ -63,6 +64,7 @@ class Client(ABC):
         self.stats = {}
         self.stats['packetsAcked'] = []
         self.stats['rttMS'] = []
+        self.stats['actualRttMS'] = []
 
         self.stats['outStandingPackets'] = []
         self.stats['dataInFlight'] = []
@@ -243,7 +245,18 @@ class Client(ABC):
                 prevRTT = self.getAvgRTTMS(self.ackedPackets[ts])
             self.stats['rttMS'].append(prevRTT)
 
+
+        self.stats['actualRttMS'] = np.zeros_like(self.stats['rttMS'])
+        
+        for packets in self.ackedPackets.values():
+            for packet in packets:
+                self.stats['actualRttMS'][packet.sentAt] = TimeUtils.convertToMS(packet.ttl, self.timeResolutionUnit, round=False)
+        
+        for i in range(1, maxSteps):
+            if self.stats['actualRttMS'][i] == 0:
+                self.stats['actualRttMS'][i] = self.stats['actualRttMS'][i-1]
         pass
+
 
     def getAvgRTTMS(self, packets):
         ttl = 0

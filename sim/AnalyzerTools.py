@@ -109,11 +109,19 @@ class AnalyzerTools:
         plt.legend()
         plt.show()
 
+    
+    def createDFFromStats(self, stats):
+        return pd.DataFrame.from_dict(stats)
 
-    def createBinnedChart(self, nodes, columnNames):
+
+    def createBinnedChart(self, nodes, columnNames, start=0, end=None):
+
+
         numberOfItems = len(nodes[0].binnedStats[columnNames[0]])
         x = np.arange(numberOfItems)
         width=0.1
+
+
         for col in columnNames:
             for node in nodes:
                 plt.bar(x, node.binnedStats[col], width=width, label=f"{col}-{node.id}")
@@ -122,21 +130,51 @@ class AnalyzerTools:
         plt.legend(loc='best')
         plt.show()
 
-    def createBinnedChartForNodeVsClient(self, nodes, nodeCols, clients, clientCols):
-        numberOfItems = len(nodes[0].binnedStats[nodeCols[0]])
-        x = np.arange(numberOfItems)
+    
+    def createPacketVsRTT(self, client, figsize=(20,10), start=0, end=None):
+        plt.figure(figsize=figsize)
+
+        # df = self.createDFFromStats(client.stats)
+        df = pd.DataFrame( {
+            'outStandingPackets': client.stats['outStandingPackets'],
+            'rttMS': client.stats['rttMS'],
+            'actualRttMS': client.stats['actualRttMS']
+        })
+        meanRTTs = df.groupby(['outStandingPackets']).max()
+
+
+        plt.plot(meanRTTs.index.to_numpy(), meanRTTs['rttMS'], label='observed rttMS')
+        plt.plot(meanRTTs.index.to_numpy(), meanRTTs['actualRttMS'], label='actual RttMS')
+        plt.legend(loc='best')
+        plt.xlabel("data in flight in # packets")
+        plt.ylabel("rtt in MS")
+        plt.show()
+
+
+    def createBinnedChartForNodeVsClient(self, nodes, nodeCols, clients, clientCols, figsize=(20,10), start=0, end=None):
+        endBefore = len(nodes[0].binnedStats[nodeCols[0]])
+
+        if (end is not None) and (end <= endBefore):
+            endBefore = end 
+
+
+        plt.figure(figsize=figsize)
+        x = np.arange(endBefore-start)
+        x += start
         width=0.1
         for col in nodeCols:
             for node in nodes:
-                plt.bar(x, node.binnedStats[col], width=width, label=f"{col}-{node.name}")
+                plt.bar(x, node.binnedStats[col][start: endBefore], width=width, label=f"{col}-{node.name}")
                 x = x + width
 
-        x = np.arange(numberOfItems)
+        x = np.arange(endBefore-start)
+        x += start
         for col in clientCols:
             for client in clients:
-                plt.plot(x, client.binnedStats[col], label=f"{col}-{client.name}")
+                plt.plot(x, client.binnedStats[col][start: endBefore], label=f"{col}-{client.name}")
 
         plt.legend(loc='best')
+        plt.xlabel("time")
         plt.show()
 
 
