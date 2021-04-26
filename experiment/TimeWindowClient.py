@@ -17,6 +17,7 @@ class TimeWindowClient(TCPClient):
                 delay_between_packets, 
                 max_outstanding_packets, 
                 timeResolutionUnit, 
+                startAt=0,
                 debug=True
                 ):
 
@@ -24,11 +25,12 @@ class TimeWindowClient(TCPClient):
                         delay_between_packets=delay_between_packets,
                         max_outstanding_packets=max_outstanding_packets,
                         timeResolutionUnit=timeResolutionUnit,
+                        startAt=startAt,
                         debug=debug
                         )
 
         self.pollCycle = pollCycle # 1 means 1 rtt. 0.5 means half the rtt
-        self.lastPolledAt = 0
+        self.lastPolledAt = startAt
         self._currentRTT = 9999999999
         self.rttWindowSize = rttWindowSize
         self.rttQueue = Window(maxsize=rttWindowSize)

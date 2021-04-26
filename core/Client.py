@@ -17,7 +17,7 @@ class Client(ABC):
             timeResolutionUnit,
             deliveryRate = 0.1, 
             debug=True,
-    
+            startAt=0,
             resolution=1):
         self.lock = threading.RLock()
         self.id = id
@@ -36,6 +36,7 @@ class Client(ABC):
         self.path = None
         self.timeResolutionUnit = timeResolutionUnit
         self.simulator = None
+        self.startAt = startAt
         self.stats = {}
         self.stats['packetsAcked'] = []
         self.stats['rttMS'] = []

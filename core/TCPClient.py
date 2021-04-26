@@ -8,9 +8,11 @@ import logging
 class TCPClient(Client):
 
 
-    def __init__(self, id, delay_between_packets, max_outstanding_packets, timeResolutionUnit, debug=True):
+    def __init__(self, id, delay_between_packets, max_outstanding_packets, timeResolutionUnit, 
+            startAt=0,
+            debug=True):
 
-        super().__init__(id, SenderType.TCP, deliveryRate=0, debug=debug, resolution=None, timeResolutionUnit=timeResolutionUnit)
+        super().__init__(id, SenderType.TCP, deliveryRate=0, debug=debug, resolution=None, timeResolutionUnit=timeResolutionUnit, startAt=startAt)
         
         self.delay_between_packets = delay_between_packets # in the same resolution as the simulator
         self.max_outstanding_packets = max_outstanding_packets
@@ -83,6 +85,8 @@ class TCPClient(Client):
     def onTimeStep(self, timeStep):
         # create events
         if self.outstanding_packets >= self.max_outstanding_packets:
+            return
+        if timeStep < self.startAt:
             return
         
         if (self.lastTimeStep + self.delay_between_packets) <= timeStep:

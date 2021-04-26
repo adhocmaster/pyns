@@ -74,7 +74,7 @@ class ClientManager:
         return client
 
     
-    def createPowerTWClient(self, pollCycle, rttWindowSize, bandWidthWindowSize, deliveryRatePerS, max_outstanding_packets):
+    def createPowerTWClient(self, pollCycle, rttWindowSize, bandWidthWindowSize, deliveryRatePerS, max_outstanding_packets, startAt=0):
 
         delay_between_packets = self.getDelayBetweenPacketsFromDeliveryRatePerS(deliveryRatePerS)
         client = PowerTWClient(
@@ -85,6 +85,7 @@ class ClientManager:
                             delay_between_packets=delay_between_packets, 
                             max_outstanding_packets=max_outstanding_packets, 
                             timeResolutionUnit=self.timeResolutionUnit,
+                            startAt=startAt,
                             debug=self.debug
                             ) 
         self.clients[self.nextClientId] = client
@@ -96,7 +97,7 @@ class ClientManager:
         return client
 
 
-    def createTCPClient(self, deliveryRatePerS, max_outstanding_packets):
+    def createTCPClient(self, deliveryRatePerS, max_outstanding_packets, startAt=0):
 
         delay_between_packets = self.getDelayBetweenPacketsFromDeliveryRatePerS(deliveryRatePerS)
         client = TCPClient(
@@ -104,6 +105,7 @@ class ClientManager:
                             delay_between_packets=delay_between_packets, 
                             max_outstanding_packets=max_outstanding_packets, 
                             timeResolutionUnit=self.timeResolutionUnit,
+                            startAt=startAt,
                             debug=self.debug
                             ) 
         self.clients[self.nextClientId] = client
@@ -114,10 +116,10 @@ class ClientManager:
 
         return client
 
-    def createTCPClients(self, n, deliveryRatePerS, max_outstanding_packets):
+    def createTCPClients(self, n, deliveryRatePerS, max_outstanding_packets, startAt=0):
 
         clients = []
         for _ in range(n):
-            clients.append(self.createTCPClient(deliveryRatePerS, max_outstanding_packets))
+            clients.append(self.createTCPClient(deliveryRatePerS, max_outstanding_packets, startAt=startAt))
         
         return clients

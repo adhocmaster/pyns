@@ -12,6 +12,7 @@ class PowerTWClient(TimeWindowClient):
                 delay_between_packets, 
                 max_outstanding_packets, 
                 timeResolutionUnit, 
+                startAt=0,
                 debug=True
                 ):
 
@@ -22,6 +23,7 @@ class PowerTWClient(TimeWindowClient):
                             delay_between_packets=delay_between_packets,
                             max_outstanding_packets=max_outstanding_packets,
                             timeResolutionUnit=timeResolutionUnit,
+                            startAt=startAt,
                             debug=debug)
 
         self.name = f"PowerTWClient {self.id}"
