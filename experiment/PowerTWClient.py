@@ -60,19 +60,20 @@ class PowerTWClient(TimeWindowClient):
                     logging.debug(f"{self.name} increasing max_outstanding_packets")
 
                 # increase by 10%
-                increment = max(1, math.ceil(self.max_outstanding_packets * 0.1))
+                increment = max(1, math.ceil(self.max_outstanding_packets * 0.2))
                 self.max_outstanding_packets += increment
                 return
             
         # trend is negative or we are exploring for better rtt (more power)
         if self.max_outstanding_packets == 1:
             if self.debug:
-                logging.debug(f"{self.name} cannot decrease max_outstanding_packets beyond 1")
+                logging.debug(f"{self.name} cannot decrease max_outstanding_packets beyond 1. adding 1")
+            self.max_outstanding_packets += 1
             return
         if self.debug:
             logging.debug(f"{self.name} decreasing max_outstanding_packets")
 
-        decrement = max(1, math.ceil(self.max_outstanding_packets * 0.1))
+        decrement = max(1, math.ceil(self.max_outstanding_packets * 0.2))
         self.max_outstanding_packets -= decrement
 
         return
