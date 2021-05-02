@@ -131,9 +131,9 @@ class AnalyzerTools:
         plt.show()
 
     
-    def createPacketVsRTT(self, client, figsize=(20,10), start=0, end=None):
+    def createPacketVsRTT(self, client, figsize=(20,10), start=0, end=None, xlabel=None, ylabel=None):
         plt.figure(figsize=figsize)
-
+        plt.rcParams['font.size'] = '14'
         # df = self.createDFFromStats(client.stats)
         df = pd.DataFrame( {
             'outStandingPackets': client.stats['outStandingPackets'],
@@ -146,12 +146,22 @@ class AnalyzerTools:
         plt.plot(meanRTTs.index.to_numpy(), meanRTTs['rttMS'], label='observed rttMS')
         plt.plot(meanRTTs.index.to_numpy(), meanRTTs['actualRttMS'], label='actual RttMS')
         plt.legend(loc='best')
-        plt.xlabel("data in flight in # packets")
-        plt.ylabel("rtt in MS")
+        if xlabel is None:
+            plt.xlabel("data in flight in # packets")
+        else:
+            plt.xlabel(xlabel)
+        if ylabel is None:
+            plt.ylabel("rtt in MS")
+        else:
+            plt.ylabel(ylabel)
+        
         plt.show()
 
 
-    def createBinnedChartForNodeVsClient(self, nodes, nodeCols, clients, clientCols, figsize=(20,10), start=0, end=None):
+    def createBinnedChartForNodeVsClient(self, nodes, nodeCols, clients, clientCols, figsize=(20,10), start=0, end=None, xlabel=None, ylabel=None):
+
+        nodeColors = ['purple', 'lawngreen', 'red', 'gold', 'slategrey', 'navy', 'yellow', 'aquamarine', 'skyblue',
+                    'purple', 'lawngreen', 'red', 'gold', 'slategrey', 'navy', 'yellow', 'aquamarine', 'skyblue']
         endBefore = len(nodes[0].binnedStats[nodeCols[0]])
 
         if (end is not None) and (end <= endBefore):
@@ -159,22 +169,33 @@ class AnalyzerTools:
 
 
         plt.figure(figsize=figsize)
+        plt.rcParams['font.size'] = '14'
+
         x = np.arange(endBefore-start)
         x += start
         width=0.1
         for col in nodeCols:
+            nodeIndex = 0
             for node in nodes:
-                plt.bar(x, node.binnedStats[col][start: endBefore], width=width, label=f"{col}-{node.name}")
+                # plt.bar(x, node.binnedStats[col][start: endBefore], width=width, label=f"{col}-{node.name}")
+                plt.scatter(x, node.binnedStats[col][start: endBefore], color=nodeColors[nodeIndex], s=2, alpha=0.5, label=f"{col}-{node.name}")
                 x = x + width
+                nodeIndex += 1
 
         x = np.arange(endBefore-start)
         x += start
         for col in clientCols:
             for client in clients:
-                plt.plot(x, client.binnedStats[col][start: endBefore], label=f"{col}-{client.name}")
+                plt.plot(x, client.binnedStats[col][start: endBefore], ':', label=f"{col}-{client.name}")
 
         plt.legend(loc='best')
-        plt.xlabel("time")
+        if xlabel is None:
+            plt.xlabel("time")
+        else:
+            plt.xlabel(xlabel)
+        if ylabel is not None:
+            plt.ylabel(ylabel)
+
         plt.show()
 
 
