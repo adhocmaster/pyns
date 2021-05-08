@@ -3,10 +3,11 @@ from core.Packet import Packet
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 class AnalyzerTools:
 
     def createDfFromPackets(self, packets):
-        
+
         packNums = []
         ttls = []
         ttlNoises = []
@@ -23,7 +24,6 @@ class AnalyzerTools:
             ackAt.append(packet.ackAt)
             isDropped.append(packet.isDropped)
 
-        
         data = {
             'packNum': packNums,
             'ttl': ttls,
@@ -32,15 +32,13 @@ class AnalyzerTools:
             'ackAt': ackAt,
             'isDropped': isDropped
         }
-        
+
         return pd.DataFrame(data)
 
-    
-    def getAvgTTLPerTimeStep(self, dfPackets:pd.DataFrame):
+    def getAvgTTLPerTimeStep(self, dfPackets: pd.DataFrame):
         return dfPackets.groupby(['sentAt']).mean()
 
-    
-    def getSenderStatsPerTimeStep(self, dfPackets:pd.DataFrame, simulatorStats):
+    def getSenderStatsPerTimeStep(self, dfPackets: pd.DataFrame, simulatorStats):
         """Stats for timeSteps in dfPackets only, it is discontinuous and have a lot of missing values.
 
         Args:
@@ -52,9 +50,9 @@ class AnalyzerTools:
         """
 
         ttlDf = dfPackets.groupby(['sentAt']).agg(
-            avgTTL = pd.NamedAgg(column = "ttl", aggfunc="mean"),
-            minTTL = pd.NamedAgg(column = "ttl", aggfunc="min"),
-            maxTTL = pd.NamedAgg(column = "ttl", aggfunc="max"),
+            avgTTL=pd.NamedAgg(column="ttl", aggfunc="mean"),
+            minTTL=pd.NamedAgg(column="ttl", aggfunc="min"),
+            maxTTL=pd.NamedAgg(column="ttl", aggfunc="max"),
         )
         sentAtArray = ttlDf.index.array
 
@@ -69,20 +67,19 @@ class AnalyzerTools:
 
         return ttlDf
 
-
-    def createPlotsAgainstDataInFlight(self, dfStats, figsize=(20,10)):
+    def createPlotsAgainstDataInFlight(self, dfStats, figsize=(20, 10)):
         plt.figure(figsize=figsize)
         plt.plot(dfStats['dataInFlight'], dfStats['avgTTL'], label="avg ttl")
         plt.plot(dfStats['dataInFlight'], dfStats['maxTTL'], label="max ttl")
-        plt.plot(dfStats['dataInFlight'], dfStats['dataInQueue'], label="data In Queue")
+        plt.plot(dfStats['dataInFlight'],
+                 dfStats['dataInQueue'], label="data In Queue")
         plt.title("Simulation stats")
         plt.xlabel("Data in flight KB")
         plt.ylabel("ttl in ms")
         plt.legend()
         plt.show()
-    
 
-    def createPlotForTimeSteps(self, statsDic, columnName, figsize=(20,10)):
+    def createPlotForTimeSteps(self, statsDic, columnName, figsize=(20, 10)):
         plt.figure(figsize=figsize)
         timeSteps = list(range(len(statsDic[columnName])))
         plt.plot(timeSteps, statsDic[columnName], label=columnName)
@@ -92,15 +89,14 @@ class AnalyzerTools:
         plt.legend()
         plt.show()
 
-    def createPlotsForTimeSteps(self, statsDic, columnNames, figsize=(20,10), title='Stats'):
+    def createPlotsForTimeSteps(self, statsDic, columnNames, figsize=(20, 10), title='Stats'):
         plt.figure(figsize=figsize)
         timeSteps = list(range(len(statsDic[columnNames[0]])))
 
-
-
         for columnName in columnNames:
             if len(timeSteps) != len(statsDic[columnName]):
-                raise Exception("Not all the columns have same number of items")
+                raise Exception(
+                    "Not all the columns have same number of items")
             plt.plot(timeSteps, statsDic[columnName], label=columnName)
 
         plt.title(title)
@@ -109,42 +105,39 @@ class AnalyzerTools:
         plt.legend()
         plt.show()
 
-    
     def createDFFromStats(self, stats):
         return pd.DataFrame.from_dict(stats)
 
-
     def createBinnedChart(self, nodes, columnNames, start=0, end=None):
-
 
         numberOfItems = len(nodes[0].binnedStats[columnNames[0]])
         x = np.arange(numberOfItems)
-        width=0.1
-
+        width = 0.1
 
         for col in columnNames:
             for node in nodes:
-                plt.bar(x, node.binnedStats[col], width=width, label=f"{col}-{node.id}")
+                plt.bar(x, node.binnedStats[col],
+                        width=width, label=f"{col}-{node.id}")
                 x = x + width
 
         plt.legend(loc='best')
         plt.show()
 
-    
-    def createPacketVsRTT(self, client, figsize=(20,10), start=0, end=None, xlabel=None, ylabel=None):
+    def createPacketVsRTT(self, client, figsize=(20, 10), start=0, end=None, xlabel=None, ylabel=None):
         plt.figure(figsize=figsize)
         plt.rcParams['font.size'] = '14'
         # df = self.createDFFromStats(client.stats)
-        df = pd.DataFrame( {
+        df = pd.DataFrame({
             'outStandingPackets': client.stats['outStandingPackets'],
             'rttMS': client.stats['rttMS'],
             'actualRttMS': client.stats['actualRttMS']
         })
         meanRTTs = df.groupby(['outStandingPackets']).max()
 
-
-        plt.plot(meanRTTs.index.to_numpy(), meanRTTs['rttMS'], label='observed rttMS')
-        plt.plot(meanRTTs.index.to_numpy(), meanRTTs['actualRttMS'], label='actual RttMS')
+        plt.plot(meanRTTs.index.to_numpy(),
+                 meanRTTs['rttMS'], label='observed rttMS')
+        plt.plot(meanRTTs.index.to_numpy(),
+                 meanRTTs['actualRttMS'], label='actual RttMS')
         plt.legend(loc='best')
         if xlabel is None:
             plt.xlabel("data in flight in # packets")
@@ -154,31 +147,34 @@ class AnalyzerTools:
             plt.ylabel("rtt in MS")
         else:
             plt.ylabel(ylabel)
-        
+
         plt.show()
 
-
-    def createBinnedChartForNodeVsClient(self, nodes, nodeCols, clients, clientCols, figsize=(20,10), start=0, end=None, xlabel=None, ylabel=None):
+    def createBinnedChartForNodeVsClient(self,
+                                         nodes, nodeCols,
+                                         clients, clientCols,
+                                         figsize=(20, 10), start=0, end=None, xlabel=None, ylabel=None
+                                         ):
 
         nodeColors = ['purple', 'lawngreen', 'red', 'gold', 'slategrey', 'navy', 'yellow', 'aquamarine', 'skyblue',
-                    'purple', 'lawngreen', 'red', 'gold', 'slategrey', 'navy', 'yellow', 'aquamarine', 'skyblue']
+                      'purple', 'lawngreen', 'red', 'gold', 'slategrey', 'navy', 'yellow', 'aquamarine', 'skyblue']
         endBefore = len(nodes[0].binnedStats[nodeCols[0]])
 
         if (end is not None) and (end <= endBefore):
-            endBefore = end 
-
+            endBefore = end
 
         plt.figure(figsize=figsize)
         plt.rcParams['font.size'] = '14'
 
         x = np.arange(endBefore-start)
         x += start
-        width=0.1
+        width = 0.1
         for col in nodeCols:
             nodeIndex = 0
             for node in nodes:
                 # plt.bar(x, node.binnedStats[col][start: endBefore], width=width, label=f"{col}-{node.name}")
-                plt.scatter(x, node.binnedStats[col][start: endBefore], color=nodeColors[nodeIndex], s=2, alpha=0.5, label=f"{col}-{node.name}")
+                plt.scatter(x, node.binnedStats[col][start: endBefore],
+                            color=nodeColors[nodeIndex], s=2, alpha=0.5, label=f"{col}-{node.name}")
                 x = x + width
                 nodeIndex += 1
 
@@ -186,7 +182,8 @@ class AnalyzerTools:
         x += start
         for col in clientCols:
             for client in clients:
-                plt.plot(x, client.binnedStats[col][start: endBefore], ':', label=f"{col}-{client.name}")
+                plt.plot(
+                    x, client.binnedStats[col][start: endBefore], ':', label=f"{col}-{client.name}")
 
         plt.legend(loc='best')
         if xlabel is None:
@@ -199,7 +196,70 @@ class AnalyzerTools:
         plt.show()
 
 
-    def binStats(self, nodes, columnNames, binSize=100, method=max):
+    
+    def createMovingAverageChartForNodeVsClient(self,
+                                         nodes, nodeCols,
+                                         clients, clientCols,
+                                         figsize=(20, 10), start=0, end=None, xlabel=None, ylabel=None,
+                                         windowSize=100,
+                                         includeOriginal=True
+                                         ):
+
+        nodeColors = ['purple', 'lawngreen', 'red', 'gold', 'slategrey', 'navy', 'yellow', 'aquamarine', 'skyblue',
+                      'purple', 'lawngreen', 'red', 'gold', 'slategrey', 'navy', 'yellow', 'aquamarine', 'skyblue']
+        endBefore = len(nodes[0].binnedStats[nodeCols[0]])
+
+        if (end is not None) and (end <= endBefore):
+            endBefore = end
+
+        plt.figure(figsize=figsize)
+        plt.rcParams['font.size'] = '14'
+
+        width = 0.1
+        ax = None
+        
+        for node in nodes:
+            df = self.createDFFromStats(node.binnedStats).iloc[start: endBefore]
+            for col in nodeCols:
+                df[f"MA_{col}"] = df[col].rolling(windowSize, min_periods=1).mean()
+                if ax is None:
+                    ax = df.plot(figsize=figsize, label=f"{node.name} {col} MA", y=f"MA_{col}")
+                else:
+                    ax = df.plot(ax=ax, figsize=figsize, label=f"{node.name} {col} MA", y=f"MA_{col}")
+
+                if includeOriginal:
+                    ax = df.plot(ax=ax, figsize=figsize, label=f"{node.name} {col}", y=col)
+
+        for client in clients:
+            df = self.createDFFromStats(client.binnedStats).iloc[start: endBefore]
+            for col in clientCols:
+                df[f"MA_{col}"] = df[col].rolling(windowSize, min_periods=1).mean()
+                if ax is None:
+                    ax = df.plot(figsize=figsize, label=f"{client.name} {col} MA", y=f"MA_{col}")
+                else:
+                    ax = df.plot(ax=ax, figsize=figsize, label=f"{client.name} {col} MA", y=f"MA_{col}")
+                        
+                if includeOriginal:
+                    ax = df.plot(ax=ax, figsize=figsize, label=f"{client.name} {col}", y=col)
+                        
+                
+
+        plt.legend(loc='best')
+        if xlabel is None:
+            plt.xlabel("time")
+        else:
+            plt.xlabel(xlabel)
+        if ylabel is not None:
+            plt.ylabel(ylabel)
+
+        plt.show()
+
+    
+    # def addDeliveryRateToBinStats(self, client):
+
+
+
+    def binStats(self, nodes, columnNames, binSize=100, method=max, resetStats=False):
         """Creates binnedStats property in nodes
 
         Args:
@@ -209,11 +269,10 @@ class AnalyzerTools:
         # init summary properties
         for node in nodes:
             print(node)
-            node.binnedStats = {}
+            if resetStats or (not hasattr(node, 'binnedStats')):
+                node.binnedStats = {}
             for col in columnNames:
                 node.binnedStats[col] = []
-            
-
 
         binStart = 0
         binEndBefore = binStart + binSize
@@ -223,19 +282,11 @@ class AnalyzerTools:
             for col in columnNames:
                 for node in nodes:
                     colData = node.stats[col]
-                    data = colData[binStart : binEndBefore]
+                    data = colData[binStart: binEndBefore]
                     agg = list(map(method, (data,)))[0]
                     node.binnedStats[col].append(agg)
-            
+
             binStart = binEndBefore
             binEndBefore += binSize
-        
-    
-    # def summarizeClientStats(self, clients, columnNames, binSize=100, method=max):
-
-
-
-
-
 
 

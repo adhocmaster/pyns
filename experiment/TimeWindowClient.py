@@ -7,7 +7,11 @@ from library.Window import Window
 
 
 class TimeWindowClient(TCPClient):
-    
+    """This client updates policy every pollcycle in rtt estimate
+
+    Args:
+        TCPClient ([type]): [description]
+    """
 
     def __init__(self, 
                 id, 
@@ -37,9 +41,11 @@ class TimeWindowClient(TCPClient):
         self.bandWidthWindowSize = bandWidthWindowSize
         self.bandWidthQueue = Window(maxsize=bandWidthWindowSize)
         self.lastAckedPacket = None
+        self.stats['deliveryRateInS'] = []
     
     def resetStats(self):
         super().resetStats()
+        self.stats['deliveryRateInS'] = []
         self.queue = queue.Queue(maxsize=self.rttWindowSize)
         self.bandWidthQueue = queue.Queue(maxsize=self.bandWidthWindowSize)
 
@@ -140,6 +146,12 @@ class TimeWindowClient(TCPClient):
             self.rttQueue.get()
         self.rttQueue.put(packet)
         self.updatePolicy()
+
+
+    
+    def onTimeStep(self, timeStep):
+        super().onTimeStep(timeStep)
+        self.stats['deliveryRateInS'].append(self.getCurrentDeliveryRatePerS())
 
     @abstractmethod
     def updatePolicy(self):

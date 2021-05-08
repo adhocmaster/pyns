@@ -52,11 +52,11 @@ logging.info("path for client1:" + str([node.id for node in path.getNodesWithSer
 logging.info("path for client2:" + str([node.id for node in path2.getNodesWithServer()]))
 
 nodeManager.reset()
-simulator = EventSimulator(timeResolutionUnit=timeResolutionUnit, nodeManager=nodeManager, debug=False)
+simulator = EventSimulator(timeResolutionUnit=timeResolutionUnit, nodeManager=nodeManager, debug=False, printStatFreq=10000)
 simulator.addClient(client)
 simulator.addClient(client2)
 
-maxSteps = 5000000 # equivalent to maxStep timeResolution unit
+maxSteps = 500000 # equivalent to maxStep timeResolution unit
 simulator.run(maxSteps)
 
 # visualization for client 2
