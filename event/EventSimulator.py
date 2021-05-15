@@ -131,14 +131,15 @@ class EventSimulator(Simulator):
 
 
     def logClientStats(self, timeStep):
-        for client in self.clients:
-            logging.info(f"Client {client.id}: Stats")
-            logging.info(f"outStandingPackets: {client.stats['outStandingPackets'][timeStep]}")
-            logging.info(f"bottleNeck: {client.stats['bottleNeck'][timeStep]}")
-            logging.info(f"dataInFlight: {client.stats['dataInFlight'][timeStep]}KB")
-            logging.info(f"dataInQueue {client.stats['dataInQueue'][timeStep]}KB")
-            logging.info(f"packetsInFlight: {client.stats['packetsInFlight'][timeStep]}")
-            logging.info(f"packetsInQueue: {client.stats['packetsInQueue'][timeStep]}")
+        if self.debug:
+            for client in self.clients:
+                logging.info(f"Client {client.id}: Stats")
+                logging.info(f"outStandingPackets: {client.stats['outStandingPackets'][timeStep]}")
+                logging.info(f"bottleNeck: {client.stats['bottleNeck'][timeStep]}")
+                logging.info(f"dataInFlight: {client.stats['dataInFlight'][timeStep]}KB")
+                logging.info(f"dataInQueue {client.stats['dataInQueue'][timeStep]}KB")
+                logging.info(f"packetsInFlight: {client.stats['packetsInFlight'][timeStep]}")
+                logging.info(f"packetsInQueue: {client.stats['packetsInQueue'][timeStep]}")
 
 
     def collectStatsForClients(self):

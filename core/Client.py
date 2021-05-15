@@ -79,6 +79,8 @@ class Client(ABC):
         self.stats['dataInQueue'] = []
         self.stats['packetsInQueue'] = []
 
+        self.stats['packetsAckedPerSec'] = []
+
     
     def getDeliveryRate(self):
         return self._deliveryRate
@@ -256,7 +258,49 @@ class Client(ABC):
         for i in range(1, maxSteps):
             if self.stats['actualRttMS'][i] == 0:
                 self.stats['actualRttMS'][i] = self.stats['actualRttMS'][i-1]
+
+        self.calculatePacketsAckedPerS()
         pass
+
+
+    def calculatePacketsAckedPerS(self):
+        # if the resolution is nano second, window is 1000_000_000
+        # if the resolution is micro second, window is 1000_000
+        # if the resolution is mili, window is 1000
+        window = 0
+        if self.timeResolutionUnit == 'ns':
+            window = 1000_000_000
+        elif self.timeResolutionUnit == 'mcs':
+            window = 1000_000
+        elif self.timeResolutionUnit == 'ms':
+            window = 1000
+        else:
+            raise Exception(f"{self.name}: calculatePacketsAckedPerS: Invalid timeResolutionUnit {self.timeResolutionUnit }")
+
+        # half second sums
+        halfWindow = int(window / 2)
+        nHalfs = math.ceil(len(self.stats['packetsAcked']) / halfWindow) 
+        halfSums = []
+        for i in range(nHalfs):
+            halfSum = sum(self.stats['packetsAcked'][i * halfWindow : (i+1) * halfWindow])
+            # print(f"halfSum {halfSum} i {i}")
+            halfSums.append(halfSum)
+        
+        nFulls = round(nHalfs / 2) + 1
+
+        # print(halfSums)
+
+        fullSums = []
+        fullSums.append(halfSums[0])
+        for i in range(1, nFulls):
+            if (i == nFulls - 1) and (2 * i) >= len(halfSums):
+                fullSums.append(halfSums[2 * i - 1])
+            else:
+                fullSums.append(halfSums[2 * i - 1] + halfSums[2 * i])
+
+        self.stats['packetsAckedPerSec'] = fullSums
+
+
 
 
     def getAvgRTTMS(self, packets):

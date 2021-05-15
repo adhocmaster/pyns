@@ -290,3 +290,23 @@ class AnalyzerTools:
             binEndBefore += binSize
 
 
+    def createPackAckedChart(self, 
+                            clients,
+                            figsize=(20, 10), xlabel=None, ylabel=None):
+
+        plt.figure(figsize=figsize)
+        plt.rcParams['font.size'] = '14'
+        x = np.arange(len(clients[0].stats['packetsAckedPerSec']))
+        for client in clients:
+            print(client.stats['packetsAckedPerSec'])
+            plt.plot(x, client.stats['packetsAckedPerSec'], label=f"{client.name}")
+
+        plt.legend(loc='best')
+        if xlabel is None:
+            plt.xlabel("time")
+        else:
+            plt.xlabel(xlabel)
+        if ylabel is not None:
+            plt.ylabel(ylabel)
+
+        plt.show()

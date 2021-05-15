@@ -17,7 +17,7 @@ np.random.seed(39)
 logfile = "debug.log"
 with open(logfile, 'w') as f:
     f.truncate()
-logging.basicConfig(level=logging.DEBUG, filename="debug.log")
+logging.basicConfig(level=logging.ERROR, filename="debug.log")
 
 print(f"Logging file at: debug.log")
 
@@ -26,7 +26,7 @@ config = Configuration()
 timeResolutionUnit = config.get('timeResolutionUnit')
 network = Network.get()
 nodeManager = NodeManager(timeResolutionUnit)
-clientManager = ClientManager(timeResolutionUnit, debug=True)
+clientManager = ClientManager(timeResolutionUnit, debug=False)
 client = clientManager.createTCPClient(deliveryRatePerS=1500, max_outstanding_packets=100)
 client2 = clientManager.createPowerTWClient(pollCycle=2,rttWindowSize=5, bandWidthWindowSize=5, deliveryRatePerS=3000, max_outstanding_packets=100)
 nodes = [
@@ -41,8 +41,8 @@ nodes2 = [
     nodeManager.createSimpleNode(maxDeliveryRate=5000, debug=False)
 ]
 
-server = Server(-1)
-server2 = Server(-2)
+server = Server(-1, debug=False)
+server2 = Server(-2, debug=False)
 
 path = network.createPath(client=client, nodes=nodes, server=server)
 path2 = network.createPath(client=client2, nodes=nodes2, server=server2)
