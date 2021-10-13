@@ -5,7 +5,7 @@ try:
 except ValueError: # Already removed
     pass
 
-projectFolder = 'C:\\muktadir\\pyns'
+projectFolder = 'C:\\Users\\adhocmaster\\Documents\\GitHub\\pyns'
 sys.path.append(str(projectFolder))
 os.chdir(projectFolder)
 print( f"current working dir{os.getcwd()}")
